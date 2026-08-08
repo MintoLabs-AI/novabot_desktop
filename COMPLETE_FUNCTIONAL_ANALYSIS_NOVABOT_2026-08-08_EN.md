@@ -1,3 +1,7 @@
+🌐 Language: [Français](./COMPLETE_FUNCTIONAL_ANALYSIS_NOVABOT_2026-08-08_FR.md) | [English](./COMPLETE_FUNCTIONAL_ANALYSIS_NOVABOT_2026-08-08_EN.md)
+
+---
+
 # Complete Functional Analysis of NovaBOT
 
 Analysis date: August 8, 2026  

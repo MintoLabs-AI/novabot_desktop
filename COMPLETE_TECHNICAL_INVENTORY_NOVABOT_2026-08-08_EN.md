@@ -1,3 +1,7 @@
+🌐 Language: [Français](./COMPLETE_TECHNICAL_INVENTORY_NOVABOT_2026-08-08_FR.md) | [English](./COMPLETE_TECHNICAL_INVENTORY_NOVABOT_2026-08-08_EN.md)
+
+---
+
 # Complete Technical Inventory of NovaBOT
 
 Inventory date: August 8, 2026  
