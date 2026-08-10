@@ -171,8 +171,6 @@ Additional features:
 
 ---
 
----
-
 ## 🌍 User Interface
 
 * PyQt5
@@ -258,7 +256,22 @@ The project is actively maintained, with the current focus on stability, perform
 
 ---
 
-## 🤝 Third-party Components
+## Optional prerequisite — Automatic Algorithmic Trading activation
+
+The Microsoft Visual C++ Redistributable may be required to use NovaBOT's
+Automatic Algorithmic Trading activation feature.
+
+Official Microsoft downloads:
+
+- Visual C++ Redistributable (x64)
+- Visual C++ Redistributable (x86)
+
+These components are not required for NovaBOT itself and should only be
+downloaded directly from Microsoft.
+
+---
+
+### 🤝 Third-party Components
 
 NovaBOT uses several open-source components:
 
