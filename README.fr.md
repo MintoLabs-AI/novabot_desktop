@@ -97,6 +97,7 @@ Chaque commande peut être activée ou désactivée indépendamment.
 - Réinitialisation indépendante par groupe
 
 ---
+
 ## 📊 Suivi des positions
 
 NovaBot reconstruit automatiquement le cycle de vie complet d'un trade.
@@ -171,8 +172,6 @@ Fonctionnalités supplémentaires :
 - Authentification Bearer
 - QR Code d'appairage
 - Aucune commande distante
-
----
 
 ---
 
@@ -259,7 +258,20 @@ Le projet est activement développé avec un accent mis désormais sur la stabil
 
 ---
 
-## 🤝 Composants tiers
+## Prérequis facultatif — Activation automatique du trading algorithmique
+
+Le Microsoft Visual C++ Redistributable peut être nécessaire pour utiliser la fonctionnalité d'activation automatique du trading algorithmique de NovaBOT.
+
+Téléchargements officiels Microsoft :
+
+- Visual C++ Redistributable (x64)
+- Visual C++ Redistributable (x86)
+
+Ces composants ne sont pas nécessaires au fonctionnement de NovaBOT lui-même et doivent être téléchargés directement depuis Microsoft.
+
+---
+
+### 🤝 Composants tiers
 
 NovaBOT utilise plusieurs composants open source :
 
