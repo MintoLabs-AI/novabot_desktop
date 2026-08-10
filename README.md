@@ -263,8 +263,8 @@ Automatic Algorithmic Trading activation feature.
 
 Official Microsoft downloads:
 
-- Visual C++ Redistributable (x64)
-- Visual C++ Redistributable (x86)
+- [Visual C++ Redistributable (x64)](https://aka.ms/vc14/vc_redist.x64.exe)
+- [Visual C++ Redistributable (x86)](https://aka.ms/vc14/vc_redist.x86.exe)
 
 These components are not required for NovaBOT itself and should only be
 downloaded directly from Microsoft.
