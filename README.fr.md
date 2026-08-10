@@ -264,8 +264,8 @@ Le Microsoft Visual C++ Redistributable peut être nécessaire pour utiliser la 
 
 Téléchargements officiels Microsoft :
 
-- Visual C++ Redistributable (x64)
-- Visual C++ Redistributable (x86)
+- [Visual C++ Redistributable (x64)](https://aka.ms/vc14/vc_redist.x64.exe)
+- [Visual C++ Redistributable (x86)](https://aka.ms/vc14/vc_redist.x86.exe)
 
 Ces composants ne sont pas nécessaires au fonctionnement de NovaBOT lui-même et doivent être téléchargés directement depuis Microsoft.
 
