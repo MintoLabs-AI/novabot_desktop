@@ -4,15 +4,16 @@
 
 # Complete Technical Inventory of NovaBOT
 
-Inventory date: August 8, 2026  
-Source of truth: source code in `NOVABOT-WORKING v209`  
+Initial inventory date: August 8, 2026  
+Last verification and update: August 10, 2026  
+Source of truth: source code in `NOVABOT-WORKING v225`  
 Document type: reference static/dynamic mapping; no source-code changes
 
 ## 1. Scope and method
 
-This inventory covers all 298 useful files, excluding generated `__pycache__` and `.pyc` artifacts. Existing documents were used only for cross-checking; counts, symbols, imports, persistence, wiring, and contracts were verified in current code.
+This inventory covers all 310 useful files, excluding generated `__pycache__` and `.pyc` artifacts. Existing documents were used only for cross-checking; counts, symbols, imports, persistence, wiring, and contracts were verified in current code.
 
-Method: complete tree classification; AST analysis of 182 Python files; implementation and `main.py` wiring review; file/SQLite/Telegram/MT5/MT4/ZeroMQ access search; import/call-chain reconstruction; review of all 59 test modules and 747 scenarios; and comparison with compilation/test results obtained on this same copy.
+Method: complete tree classification; AST analysis of 190 Python files; implementation and `main.py` wiring review; file/SQLite/Telegram/MT5/MT4/ZeroMQ access search; import/call-chain reconstruction; review of all 65 test modules and 800 test methods; and comparison with compilation/test results obtained on this same copy.
 
 ### 1.1 Counting conventions
 
@@ -20,27 +21,31 @@ Method: complete tree classification; AST analysis of 182 Python files; implemen
 |---|---|
 | Production/technical Python file | Any `.py` outside `validation/tests`, including scripts, PyInstaller hook, and vendored QR library. |
 | Function | `FunctionDef`/`AsyncFunctionDef` without a class ancestor. |
-| Method | Function with a class ancestor: 1,489 direct methods and 52 method-local callbacks. |
+| Method | Function with a class ancestor; production code contains 1,531 direct methods and 59 method-local callbacks. |
 | PyQt signal | Static assignment to `pyqtSignal(...)`. |
-| Timer | Six recurring `QTimer` objects plus thirteen `singleShot` scheduling sites. |
+| Timer | Six recurring `QTimer` objects plus fifteen `singleShot` scheduling sites. |
 
 ### 1.2 Quantitative results
 
 | Item | Production/technical | Tests | Total |
 |---|---:|---:|---:|
-| Python files | 123 | 59 | 182 |
-| Classes | 151 | 148 | 299 |
-| Functions | 345 | 32 | 377 |
-| Methods/callbacks | 1,541 | 1,103 | 2,644 |
-| Constructors | 95 | 47 | 142 |
-| Async functions/methods | 44 | 21 | 65 |
+| Python files | 125 | 65 | 190 |
+| Classes | 156 | 160 | 316 |
+| Functions | 351 | 33 | 384 |
+| Methods/callbacks | 1,590 | 1,174 | 2,764 |
+| Constructors | 97 | 49 | 146 |
+| Async functions/methods | 46 | 21 | 67 |
 | Properties | 20 | 0 | 20 |
-| Dataclasses | 23 | — | 23 |
+| Dataclasses | 25 | — | 25 |
 | Enums | 3 | — | 3 |
-| Decorated PyQt slots | 10 | — | 10 |
-| Declared PyQt signals | 32 | — | 32 |
+| Decorated PyQt slots | 11 | — | 11 |
+| Declared PyQt signals | 33 | — | 33 |
 
-The tree also contains 80 language JSON files, 18 PNGs, 7 Markdown files, 5 BAT files, 2 PowerShell scripts, one PyInstaller SPEC, one ICO, one MQ4 EA, and one text notice.
+The tree also contains 80 language JSON files, 18 PNGs, 11 Markdown files, 5 BAT files, 2 PowerShell scripts, one PyInstaller SPEC, one ICO, one MQ4 EA, and one text notice.
+
+### 1.3 Technical delta verified since the initial inventory
+
+Two production modules are new: `app/telegram/telegram_destination_binding.py` and `app/core/windows_vc_runtime.py`. Six additional test modules characterize Telegram destination binding, typography, the Copy Trader Settings button, actual-entry TP adjustment, Visual C++ Runtime detection, and the all-groups split-entry mode. Other v225 changes are implemented in existing files, mainly `connect_telegram.py`, `telegram_notification_outbox.py`, `money_management.py`, `mt5_order_execution.py`, `mt5_trade_lifecycle.py`, `mt5_trade_monitoring.py`, `connect_metatrader_mt5.py`, `app/onboarding/*`, `display_adaptation.py`, `about_dialog.py`, `copy_trader_mt5.py`, `main.py`, and the language catalogs.
 
 ## 2. Packages and entry points
 
@@ -88,9 +93,9 @@ The recurring timers are Copy Trader poll (150 ms), installer poll (500 ms), Das
 
 ## 6. PyQt signals and slots
 
-The 32 signals belong to Dashboard snapshot/Widget, MT5 connection worker/MT5App, Onboarding coordinator/dialog, Telegram AsyncWorker/dialogs/TelegramApp. They carry worker results, status, trade publications, supervision events, reconnect state, selected-source changes, setup readiness, and durable outbox acknowledgement.
+The 33 signals belong to Dashboard snapshot/Widget, MT5 connection worker/MT5App, Onboarding coordinator/dialog, Telegram AsyncWorker/dialogs/TelegramApp. They carry worker results, status, trade publications, supervision events, reconnect and destination-issue state, selected-source changes, setup readiness, and durable outbox acknowledgement.
 
-The ten decorated Telegram slots are `send_text_to_group`, `on_create_bot_finished`, `get_phone_number_dialog`, `request_code_dialog`, `update_button_text`, `update_status`, `_handle_telegram_reconnect_event`, `on_worker_finished_ok`, `on_worker_finished_err`, and `on_get_chats_finished`.
+Eleven decorated PyQt slots were identified. They include Telegram publication, bot completion, phone/code dialogs, button/status refresh, reconnect/destination handling, worker completion, and chat-list completion.
 
 ## 7. Routes and protocols
 
@@ -119,6 +124,7 @@ Telegram uses Telethon client calls and handlers, not webhooks. MT5 reads go thr
 | `app/core/profile_json_store.py`, `profile_manager.py` | tolerant/atomic store, profiles, safe ZIP, PID locks | active infrastructure |
 | `app/core/startup_settings_dialog.py` | startup/display/supervision/token/QR settings | UI |
 | `app/core/tab_bar_adaptation.py`, `typography.py` | stable tab sizing and font scaling | UI infrastructure |
+| `app/core/windows_vc_runtime.py` | `VisualCppRuntimeStatus`; Windows architecture/registry detection and official VC++ runtime URL | active infrastructure |
 
 ### 8.2 Dashboard and onboarding
 
@@ -154,7 +160,7 @@ Onboarding files define `OnboardingRepository`, immutable `SetupStep`/`StepState
 
 `connect_telegram.py` defines `AsyncWorker`, `LoopRunner`, phone/trade/messages/chats/API/outbox dialogs, and `TelegramApp`. It owns Telethon connection, authorization, bot/private group, listening, source selection, filtering, forwarding/copy, reply mapping, edited/deleted handlers, durable outbox, reconnection, and the MT5 bridge.
 
-Supporting modules are bot-admin promotion; selected-chat/profile settings stores; filter defaults/store/engine/policy/contracts/dialog; forward-map store; deleted-message audit; SQLite outbox and delivery service; reconnect dataclass/policy; Smart persistence/detector/resolver/engine; and Telegram correlation state/service.
+Supporting modules are bot-admin promotion; selected-chat/profile settings stores; filter defaults/store/engine/policy/contracts/dialog; forward-map store; deleted-message audit; SQLite outbox and delivery service; `telegram_destination_binding.py` with immutable `TelegramDestinationBinding` and its profile repository; reconnect dataclass/policy; Smart persistence/detector/resolver/engine; and Telegram correlation state/service.
 
 `SmartAutomationEngine` owns dictionaries/detection/context/validation/dispatch but not raw MT5 actions. `TelegramNotificationOutboxStore` owns schema migration, corruption recovery, leases, ordering, retry/dead-letter/context, and pruning.
 
@@ -229,11 +235,11 @@ Copy Trader: confirmed source/target → inventory/mapping review → poll sourc
 
 ## 12. Persistence map
 
-Global artifacts are `.novabot/config.json` and per-profile `.profile.lock`. Profile `data` contains startup/app settings, selected chats, filter settings/processed data, deletion cache, forward map, notification outbox, group ID, Smart dictionary, MT5/MM settings, lifecycle watchlist, chat history, aliases, Copy Trader settings/map, onboarding, and Dashboard SQLite.
+Global artifacts are `.novabot/config.json` and per-profile `.profile.lock`. Profile `data` contains startup/app settings, selected chats, filter settings/processed data, deletion cache, forward map, notification outbox, group ID, structured Telegram destination binding, Smart dictionary, MT5/MM settings, lifecycle watchlist, chat history, aliases, Copy Trader settings/map, onboarding, and Dashboard SQLite.
 
 `secrets` contains Telegram/Copy Fernet key, encrypted Telegram API/bot data, and MT5 key/encrypted credentials. `sessions` contains Telethon SQLite/session sidecars. `mt5_sessions` contains canonical and legacy symbol-info JSON.
 
-`logs` contains Telegram/MT5/Copy console histories, filter/deleted/transferred/Smart logs, market snapshots, trade log, validation CSV, and MT4 worker log. Supervision has `settings.json` and DPAPI `token.protected`. Temporary artifacts include bridge owner JSON and extracted installer bundle. Forty named persistent artifacts/families were identified, excluding 80 read-only language catalogs and dynamic backups/sidecars.
+`logs` contains Telegram/MT5/Copy console histories, filter/deleted/transferred/Smart logs, market snapshots, trade log, validation CSV, and MT4 worker log. Supervision has `settings.json` and DPAPI `token.protected`. Temporary artifacts include bridge owner JSON and extracted installer bundle. Forty-one named persistent artifacts/families were identified, excluding 80 read-only language catalogs and dynamic backups/sidecars.
 
 ## 13. Significant constants and caches
 
@@ -257,18 +263,18 @@ No other fully isolated production module was found.
 
 ## 15. Test inventory
 
-All 59 files were reviewed. Their domains are:
+All 65 test files were reviewed. Their domains are:
 
-- architecture/core/UI: About, refactor contracts, display, documentation, themes, MM layout/group override, onboarding, CLI/profile manager, typography, tabs, language cache;
-- Telegram: API recovery, bot admin, deletion audit, filter/UI/routing, listener refresh, outbox, authorization, reconnect, edited-signal correction, reply publication;
-- MT5: market context, autotrading, execution, position actions, Smart Close, classifier, lifecycle, math, messages, monitoring, workers, progressive TP, parser, validation, asset-family thresholds, aliases, symbol store;
+- architecture/core/UI: About, refactor contracts, display, documentation, themes, MM layout/group override/reset, onboarding, Visual C++ detection, CLI/profile manager, typography, tabs, language cache;
+- Telegram: API recovery, bot admin, destination binding/account change, deletion audit, filter/UI/routing, listener refresh, outbox, authorization, reconnect, edited-signal correction, reply publication;
+- MT5: market context, autotrading, execution, single-entry auto-LIMIT, position actions, Smart Close, classifier, lifecycle, math, messages, monitoring, workers, progressive TP, actual-entry TP adjustment, global/per-group split, parser, validation, asset-family thresholds, aliases, symbol store;
 - Dashboard: analytics and statistics;
 - supervision: foundations, network, notifications, pairing, private config, transport, transport events;
-- Copy Trader/MT4: poll/initial synchronization/source sharing/mapping/replication, worker/EA/installer/build contracts.
+- Copy Trader/MT4: Settings button, poll/initial synchronization/source sharing/mapping/replication, worker/EA/installer/build contracts.
 
 Direct live coverage is intentionally absent for real broker execution, real Telethon/BotFather network behavior, all visual/localized rendering, end-to-end PowerShell installation across arbitrary MT4 builds, a compiled EA on a live terminal, all UIA variants, and some text-log ACL/disk failures. Facade/AST coverage must not be mistaken for no coverage.
 
-Observed suite: `python -m unittest discover -s validation/tests -p "test_*.py"` ran 747 tests with 26 assertion failures and 0 errors. `python -m compileall app validation main.py` succeeded. Existing failures were not changed or hidden.
+Observed suite: `python -m unittest discover -s validation/tests -p "test_*.py"` ran 800 tests with 26 assertion failures and 0 errors. Read-only syntax compilation of all 190 Python sources succeeded. Existing failures were not changed or hidden.
 
 ## 16. Structural component summary
 
@@ -291,16 +297,16 @@ Observed suite: `python -m unittest discover -s validation/tests -p "test_*.py"`
 
 ## 17. Final summary
 
-1. 298 useful files analyzed.
-2. 123 production/technical Python files.
-3. 59 test files.
-4. 151 production/technical classes; 299 including tests.
-5. 345 production/technical functions; 377 including tests.
-6. 1,541 production/technical methods/callbacks; 2,644 including tests.
-7. 32 PyQt signals and 10 decorated slots.
+1. 310 useful files analyzed.
+2. 125 production/technical Python files.
+3. 65 test files.
+4. 156 production/technical classes; 316 including tests.
+5. 351 production/technical functions; 384 including tests.
+6. 1,590 production/technical methods/callbacks; 2,764 including tests.
+7. 33 PyQt signals and 11 decorated slots.
 8. Eight structural concurrency units: four QThreads, two worker processes, one HTTP thread, and one dedicated asyncio loop; plus a temporary installer process.
-9. Nineteen timer sites: six recurring timers and thirteen single-shots.
-10. Forty persistent artifacts/families, including two SQLite databases.
+9. Twenty-one timer sites: six recurring timers and fifteen single-shots.
+10. Forty-one persistent artifacts/families, including two SQLite databases.
 11. Main dependencies: PyQt5, Telethon, MetaTrader5, cryptography/Fernet, pyzmq, SQLite, optional pywinauto, and Windows/network/concurrency stdlib.
 12. Main state owners: profile manager, TelegramApp/stores, MT5/Lifecycle runtime, MM controller, Dashboard store, CopyTraderMT5, and SupervisionRuntime.
 13. Main path: Telegram → filter → parser → aliases → admission/MM/validation → MT5 → lifecycle → durable Telegram notifications → Dashboard/supervision.

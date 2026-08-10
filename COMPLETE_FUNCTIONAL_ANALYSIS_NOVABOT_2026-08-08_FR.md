@@ -4,8 +4,9 @@
 
 # Analyse fonctionnelle complète de NovaBOT
 
-Date de l’analyse : 8 août 2026  
-Source de vérité : code présent dans `NOVABOT-WORKING v209`  
+Date de l’analyse initiale : 8 août 2026  
+Dernière vérification et mise à jour : 10 août 2026  
+Source de vérité : code présent dans `NOVABOT-WORKING v225`  
 Nature du document : description fonctionnelle sans modification du code
 
 ## 1. Périmètre, méthode et niveau de preuve
@@ -34,12 +35,12 @@ Un nom de fichier ou de classe n’a pas été considéré comme une preuve suff
 
 ### 1.1 Inventaire
 
-L’arborescence contient 298 fichiers utiles au moment de l’inventaire :
+L’arborescence contient 310 fichiers utiles au moment de l’inventaire :
 
-- 182 fichiers Python ;
+- 190 fichiers Python, dont 125 applicatifs/techniques et 65 modules de test ;
 - 80 fichiers JSON ;
 - 18 images PNG ;
-- 7 fichiers Markdown ;
+- 11 fichiers Markdown ;
 - 5 fichiers BAT ;
 - 2 scripts PowerShell ;
 - 1 fichier SPEC PyInstaller ;
@@ -47,7 +48,22 @@ L’arborescence contient 298 fichiers utiles au moment de l’inventaire :
 - 1 Expert Advisor MQ4 ;
 - 1 notice texte.
 
-Les 80 fichiers de langue correspondent à 8 domaines dans 10 langues. La suite comprend 59 modules `test_*.py`.
+Les 80 fichiers de langue correspondent à 8 domaines dans 10 langues. La suite comprend 65 modules `test_*.py` et 800 méthodes de test.
+
+### 1.2 Évolutions fonctionnelles vérifiées dans la révision v225
+
+La présente révision intègre dans les sections concernées les comportements supplémentaires réellement branchés dans le code actuel :
+
+- association persistante du groupe Telegram de destination au compte Telegram qui l’a créé, avec détection et rétablissement contrôlé après changement de compte ;
+- réinitialisation confirmée des seuls paramètres du Money Management vers leurs valeurs par défaut ;
+- conversion automatique en ordre LIMIT d’une entrée unique devenue trop éloignée lorsque l’auto-LIMIT est actif ;
+- option « Ajuster les TP à l’entrée réelle », globale ou par groupe, pour les entrées uniques, multiples et fractionnées, hors ordres STOP ;
+- mode d’entrée fractionnée commun à tous les groupes, en plus du mode historique par groupe ;
+- proposition d’activation du trading algorithmique depuis l’assistant, précédée du contrôle du Runtime Visual C++ adapté à l’architecture Windows ;
+- application du réglage de taille des caractères aux fenêtres et boîtes de dialogue, à l’exception volontaire de la gestion des profils ;
+- bouton Paramètres dans le module Copy Trader ;
+- classification explicite des clôtures au prix d’entrée quand un TP a volontairement été déplacé sur ce prix ;
+- suivi MT5 plus tolérant aux indisponibilités transitoires du tick, sans fabriquer de prix ni de preuve de clôture.
 
 ## 2. Finalité générale et architecture fonctionnelle
 
@@ -138,6 +154,8 @@ Les huit étapes sont :
 
 La progression est persistée dans `data/onboarding.json`. Une étape déjà vérifiée reste inscrite dans l’historique, tandis que `ready_now` reflète l’état courant. La fin positionne le statut `complete`, désactive l’ouverture automatique et remplace l’action « Reprendre plus tard » par « Fermer ». « Passer la configuration guidée » place le document en état `skipped` sans configurer les modules.
 
+Après une connexion MT5, l’assistant vérifie aussi l’autorisation de trading algorithmique. Si elle est désactivée, il réutilise l’activateur déjà présent dans le module MT5. Avant cette tentative, `detect_visual_cpp_runtime()` détermine l’architecture Windows et lit le registre du Runtime Visual C++ 14 ; si le runtime requis manque, une boîte de dialogue explique le prérequis et propose le lien Microsoft x64 ou x86 correspondant. Cette assistance ne crée pas une neuvième étape et ne considère jamais l’activation comme acquise sans confirmation du terminal.
+
 Le Copy Trader, le bridge MT4 et NovaBOT Companion sont volontairement hors de cette check-list.
 
 ## 4. Préférences, langues, thèmes et affichage
@@ -148,14 +166,14 @@ La langue peut être automatique ou manuelle. La détection système est mise en
 
 Trois thèmes sont implémentés : clair, sombre et bleu clair. Six modes d’affichage existent : compact, équilibré, étendu, zoom, original et automatique. Le mode initial est `original`. Les tailles de caractères sont normale, moyenne et grande.
 
-L’adaptation d’affichage réapplique géométrie, métriques des onglets et typographie lors des changements d’écran ou d’échelle. Chaque module possède un logo adapté au thème et un dialogue « About NovaBOT » commun.
+L’adaptation d’affichage réapplique géométrie, métriques des onglets et typographie lors des changements d’écran ou d’échelle. Le réglage de taille des caractères est propagé aux fenêtres et dialogues de l’application, y compris About et Copy Trader ; la fenêtre de gestion des profils est volontairement exclue. Chaque module possède un logo adapté au thème, un dialogue « About NovaBOT » commun et, dans la v225, le Copy Trader expose également le bouton Paramètres partagé.
 
 Le dialogue About affiche actuellement, dans le code :
 
 - version `v2026.0.200` ;
 - build `200` ;
-- copyright NovaBOT by Mintoah ;
-- lien GitHub vers `mintoah369/novabot_desktop` ;
+- copyright `Copyright © 2026 NovaBOT by MintoLabs` ;
+- lien « View on GitHub » vers `https://github.com/MintoLabs-AI/` ;
 - mql-zmq, Telethon, PyQt5 et ZeroMQ.
 
 ## 5. Telegram
@@ -171,6 +189,8 @@ Le bouton de modification des API est disponible hors connexion et masqué lorsq
 Le watchdog distingue une déconnexion inattendue d’une déconnexion demandée. Il évite les tentatives concurrentes et utilise les délais `0, 2, 5, 10, 30` secondes. Après restauration, il réinstalle les handlers si l’écoute était activée. Une session révoquée ou nécessitant une nouvelle authentification est signalée comme intervention requise.
 
 ### 5.3 Bot et groupe privé
+
+Le groupe privé de destination n’est plus identifié uniquement par `group_id.txt`. `telegram_destination.json` associe le compte Telegram courant à l’identifiant marqué du peer, au channel ID brut, à l’access hash, au titre du groupe et au nom du bot. Au chargement et après authentification, NovaBOT contrôle que cette liaison appartient bien au compte connecté et tente de résoudre l’entité réelle. Un changement de compte, une entité inaccessible ou une liaison invalide produit un état explicite au lieu de réutiliser aveuglément une ancienne entité. La liaison est écrite atomiquement et l’ancien identifiant texte reste un support de compatibilité.
 
 Le parcours de création dialogue avec BotFather pour créer le bot, définir description, texte « À propos » et photo. Il crée un groupe privé, configure son identité, ajoute le bot, puis confirme sa promotion comme administrateur avec plusieurs vérifications temporisées.
 
@@ -254,6 +274,8 @@ Les notifications passent par une outbox SQLite propre au profil. Les états inc
 - sauvegarde une base corrompue avant reconstruction ;
 - accuse réception au lifecycle après enregistrement/envoi.
 
+Lorsqu’une destination équivalente est rétablie, les notifications en attente peuvent être réaffectées vers la liaison valide. La réaffectation ne change ni leur contenu ni leur clé de déduplication et les échecs de maintenance de l’outbox restent fail-open vis-à-vis du trading.
+
 ## 6. Parser et symboles
 
 ### 6.1 Parsing
@@ -305,6 +327,8 @@ Le watchdog vérifie le terminal et le compte. Une perte de session désactive l
 ### 7.2 Préparation au trading
 
 Avant l’ordre, NovaBOT contrôle l’état du terminal, du compte et des permissions. Si Algo Trading est désactivé dans un parcours Telegram, il publie l’information, demande l’autorisation de l’utilisateur puis peut chercher et activer le contrôle Windows du terminal. Le signal initial reste bloqué après cette demande : il n’est pas envoyé silencieusement pendant l’interaction.
+
+Depuis l’assistant, la même activation est proposée après connexion. Le Runtime Visual C++ requis est contrôlé en lecture seule dans le registre Windows ; la boîte de dialogue fournit le lien officiel correspondant à l’architecture détectée si l’installation manque.
 
 Le module permet aussi la saisie manuelle d’un texte, qui utilise le parser et le pipeline d’exécution.
 
@@ -364,6 +388,8 @@ Les options comprennent :
 
 La dérogation par groupe ne devient active que si la conversion automatique LIMIT ou la tolérance automatique est cochée. Elle force la branche MARKET à travers la règle de distance ; elle ne contourne pas les contrôles du terminal, le volume, la validation, l’anti-doublon ou le nombre maximal.
 
+Le dialogue contient aussi « Réinitialiser les paramètres par défaut ». L’action exige une confirmation, remplace uniquement le document Money Management par une copie indépendante de `DEFAULT_MM_SETTINGS`, le repersiste pour le profil et ferme le dialogue afin d’éviter qu’un ancien état de widgets ne réécrive les valeurs réinitialisées.
+
 ### 8.5 Sécurisation
 
 Les réglages branchés sont :
@@ -383,13 +409,19 @@ Cette fonction est désactivée par défaut. Elle peut s’appliquer à tous les
 
 Elle rapproche uniquement les TP valides de l’entrée : soustraction pour un BUY dont le TP est au-dessus, addition pour un SELL dont le TP est en dessous, sans franchir l’entrée. Un marqueur interne empêche une double application. Elle est utilisée dans le signal initial et dans la correction d’un message édité.
 
+### 8.7 Ajustement des TP à l’entrée réelle
+
+Cette option distincte est désactivée par défaut et peut être activée pour tous les groupes ou individuellement pour les sources sélectionnées dans Telegram. Elle marque le plan avant le fractionnement afin que les entrées uniques, multiples et les deux branches d’une entrée fractionnée conservent la politique. Les ordres STOP sont explicitement exclus.
+
+Pour chaque TP, NovaBOT conserve la distance du plan original : `TP ajusté = TP de référence + (entrée réellement confirmée - entrée prévue)`. Pour un MARKET, l’ajustement est appliqué avec le prix retenu à l’exécution ; pour un pending déclenché, le lifecycle utilise le `price_open` confirmé puis envoie une modification SL/TP. Les tickets déjà ajustés sont persistés pour éviter une double translation. La correction d’un signal édité reconstruit également les références avant de modifier ou recréer une opération manquante.
+
 ## 9. Admission et type d’ordre
 
 Pour MARKET, NovaBOT utilise ask pour BUY et bid pour SELL. `usable_tick()` effectue jusqu’à deux lectures avant de considérer le tick indisponible.
 
 Les pending explicites conservent leur intention : BUY LIMIT sous le marché, SELL LIMIT au-dessus, BUY STOP au-dessus et SELL STOP sous le marché. Une géométrie explicite du mauvais côté est refusée.
 
-Pour une instruction MARKET, la politique compare le marché à l’entrée ou à la zone. Elle peut conserver MARKET, bloquer une entrée unique trop éloignée ou convertir une zone en LIMIT. Les tolérances automatiques sont proportionnelles au prix :
+Pour une instruction MARKET, la politique compare le marché à l’entrée ou à la zone. Une entrée unique favorable ou dans la tolérance reste MARKET. Si sa dérive défavorable dépasse la tolérance, elle est convertie en BUY/SELL LIMIT au prix prévu lorsque l’auto-LIMIT est actif ; elle n’est bloquée avec la raison « entrée unique trop éloignée » que lorsque cet automatisme est désactivé. Les pending explicitement LIMIT ou STOP conservent leur intention et ne passent pas par cette conversion. Les tolérances automatiques sont proportionnelles au prix :
 
 | Famille | Ratio |
 |---|---:|
@@ -403,7 +435,7 @@ La tolérance historique en points sert lorsque l’automatisme est désactivé 
 
 ## 10. Entrée fractionnée
 
-Le fractionnement est configuré par source Telegram et exige une véritable zone dont la largeur atteint le minimum du groupe. Un STOP explicite n’est jamais fractionné.
+Le fractionnement possède deux modes exclusifs : « Tous les groupes » et « Par groupe ». Le mode historique par groupe reste la valeur par défaut pour préserver les profils existants. Le mode global applique une même configuration complète à toutes les sources : activation, largeur minimale de zone, autorisation des LIMIT après TP1 et déplacement des TP de l’entrée 1 à son prix d’entrée. Les deux documents de configuration sont conservés séparément lors d’un changement de mode. Dans tous les cas, il faut une véritable zone dont la largeur atteint le minimum applicable et un STOP explicite n’est jamais fractionné.
 
 Pour un BUY, l’entrée 1 est la borne haute et l’entrée 2 la borne basse. Pour un SELL, l’entrée 1 est la borne basse et l’entrée 2 la borne haute. Un signal MARKET produit une branche MARKET et une branche LIMIT ; un signal explicitement LIMIT garde deux branches LIMIT. Les volumes de chaque TP sont d’abord calculés, doivent pouvoir être divisés en deux lots broker valides, puis sont partagés entre les branches.
 
@@ -555,8 +587,9 @@ Le lifecycle croise tickets, magic, commentaires, prix, retcodes, historiques et
 - fermeture partielle externe ;
 - pending annulé, expiré ou rejeté ;
 - causes mixtes, inconnues ou preuves indisponibles.
+- clôture au prix d’entrée lorsqu’un TP avait été volontairement déplacé sur ce prix.
 
-Une disparition momentanée ne suffit pas à publier une clôture. Les événements de position passent par un état résolu/non résolu et les publications possèdent des identifiants persistés afin d’être dédupliquées.
+Une disparition momentanée ne suffit pas à publier une clôture. Les événements de position passent par un état résolu/non résolu et les publications possèdent des identifiants persistés afin d’être dédupliquées. Une indisponibilité transitoire du tick ne fabrique aucun franchissement de TP : le suivi conserve le batch et attend une lecture exploitable ou une preuve historique.
 
 ### 14.3 Automatismes
 
@@ -581,6 +614,7 @@ Les notifications couvrent notamment :
 - suppression de LIMIT après TP1 ou fermeture manuelle du MARKET ;
 - expiration, annulation ou rejet d’un pending ;
 - trade terminé avec causes détaillées.
+- clôture au prix d’entrée, avec le TP concerné, lorsqu’un TP déplacé sur l’entrée ferme effectivement la position.
 
 Les messages utilisent le fil du signal lorsque la corrélation est disponible. Le lifecycle demande un contexte de réponse pour les publications correspondantes et l’outbox gère l’attente plutôt que de publier arbitrairement à la racine.
 
@@ -674,6 +708,7 @@ Le code de NovaBOT Companion n’est pas présent dans cette arborescence. L’i
 | `data/telegram_notification_outbox.sqlite3` | Livraisons Telegram. |
 | `data/telegram_command_dictionary.json` | Dictionnaire Smart utilisateur. |
 | `data/group_id.txt` | Groupe privé destination. |
+| `data/telegram_destination.json` | Liaison structurée entre compte Telegram, groupe privé, peer/channel et access hash. |
 | `data/mt5_app_settings.json` | Money Management et réglages MT5. |
 | `data/symbol_aliases.json` | Alias broker, partagés avec le Copy Trader. |
 | `data/be_watchlist.json` | Lifecycle persistant. |
@@ -770,7 +805,7 @@ La façade publique `MT5App` conserve un ordre explicite de mixins pour préserv
 
 ## 22. Fonctionnalités facultatives ou désactivées par défaut
 
-Sont présentes mais désactivées initialement : auto-connexion Telegram/MT5, conversion auto-LIMIT, tolérance automatique, adaptation spread, validation, anti-doublon, limite de trades, capital virtuel, coffre, BE, suivi TP/SL, sécurisation en pips, progressive TP, décalage TP, entrée fractionnée et dérogation par groupe.
+Sont présentes mais désactivées initialement : auto-connexion Telegram/MT5, conversion auto-LIMIT, tolérance automatique, adaptation spread, validation, anti-doublon, limite de trades, capital virtuel, coffre, BE, suivi TP/SL, sécurisation en pips, progressive TP, décalage TP, ajustement TP à l’entrée réelle, entrée fractionnée globale/par groupe et dérogation par groupe.
 
 Les commandes Smart individuelles sont également inactives sans réglage explicite. La supervision locale fait exception : elle est activée par défaut.
 
@@ -788,23 +823,23 @@ Les commandes Smart individuelles sont également inactives sans réglage explic
 
 ### 24.1 Résultat réel
 
-Commandes exécutées depuis le dossier analysé :
+Contrôles exécutés depuis le dossier analysé :
 
 ```text
-python -m compileall -q app validation main.py
+Compilation syntaxique en lecture seule de tous les fichiers Python
 python -m unittest discover -s validation/tests -p "test_*.py"
 ```
 
 Résultat :
 
-- compilation : réussie ;
-- tests : 747 ;
+- compilation syntaxique : 190 fichiers réussis ;
+- tests : 800 ;
 - échecs d’assertion : 26 ;
 - erreurs : 0.
 
 ### 24.2 Couverture
 
-Les tests caractérisent notamment profils/import/export/verrous, lancement CLI, langues, thèmes, affichage, About, onboarding, parser, alias, LIMIT/STOP, filtre et routage Telegram, reconnexion, bot administrateur, audit de suppression, correction de signal, outbox, Smart, Money Management, décalage TP, entrée fractionnée, validation, transports/actions/lifecycle MT5, progressive TP, Dashboard, supervision, Copy Trader, workers MT5/MT4 et installation/récupération du bridge.
+Les tests caractérisent notamment profils/import/export/verrous, lancement CLI, langues, thèmes, typographie des dialogues, affichage, About, onboarding et contrôle Visual C++, parser, alias, LIMIT/STOP et auto-LIMIT d’entrée unique, filtre et routage Telegram, liaison de destination et reconnexion, bot administrateur, audit de suppression, correction de signal, outbox, Smart, réinitialisation Money Management, décalage TP, ajustement TP à l’entrée réelle, entrée fractionnée par groupe ou globale, validation, transports/actions/lifecycle MT5, progressive TP, Dashboard, supervision, Copy Trader et son bouton Paramètres, workers MT5/MT4 et installation/récupération du bridge.
 
 Ils utilisent des doubles et des AST pour une partie des contrats. Ils ne prouvent pas la disponibilité réelle de Telegram, du broker, d’un terminal, du marché ou du réseau.
 

@@ -4,22 +4,23 @@
 
 # Inventaire technique complet de NovaBOT
 
-Date de l'inventaire : 8 août 2026  
-Source de vérité : code présent dans `NOVABOT-WORKING v209`  
+Date de l'inventaire initial : 8 août 2026  
+Dernière vérification et mise à jour : 10 août 2026  
+Source de vérité : code présent dans `NOVABOT-WORKING v225`  
 Nature : cartographie statique et dynamique de référence, sans modification du code
 
 ## 1. Périmètre et méthode
 
-L'inventaire couvre l'intégralité des 298 fichiers utiles de l'arborescence fournie, en excluant seulement les artefacts Python générés (`__pycache__`, `.pyc`). Les documents existants ont servi de contrôle croisé ; les nombres, symboles, imports, écritures, branchements et contrats indiqués ci-dessous ont été vérifiés dans le code actuel.
+L'inventaire couvre l'intégralité des 310 fichiers utiles de l'arborescence fournie, en excluant seulement les artefacts Python générés (`__pycache__`, `.pyc`). Les documents existants ont servi de contrôle croisé ; les nombres, symboles, imports, écritures, branchements et contrats indiqués ci-dessous ont été vérifiés dans le code actuel.
 
 La méthode combine :
 
 - parcours de l'arborescence et classification par extension ;
-- analyse AST des 182 fichiers Python : définitions, signatures, décorateurs, héritage, imports, constantes, signaux, fonctions asynchrones et sites de création de timers/processus ;
+- analyse AST des 190 fichiers Python : définitions, signatures, décorateurs, héritage, imports, constantes, signaux, fonctions asynchrones et sites de création de timers/processus ;
 - lecture des implémentations et des câblages depuis `main.py` ;
 - recherche des accès fichiers, SQLite, Telegram, MT5, MT4 et ZeroMQ ;
 - reconstruction du graphe d'import et des principaux appels ;
-- lecture des 59 modules de test et de leurs 747 scénarios ;
+- lecture des 65 modules de test et de leurs 800 méthodes de test ;
 - contrôle par compilation et exécution de la suite réalisés sur cette même copie lors de l'analyse fonctionnelle associée.
 
 ### 1.1 Convention de comptage
@@ -28,28 +29,32 @@ La méthode combine :
 |---|---|
 | Fichier Python applicatif | Tout `.py` hors `validation/tests`, y compris scripts, hook PyInstaller et bibliothèque QR embarquée. |
 | Fonction | `FunctionDef` ou `AsyncFunctionDef` sans ancêtre de classe ; les fonctions locales sont incluses si elles ne sont pas lexicalement dans une classe. |
-| Méthode | Toute fonction ayant une classe comme ancêtre ; 1 489 sont des méthodes directement déclarées dans une classe et 52 des callbacks/fonctions locales déclarés dans une méthode. |
+| Méthode | Toute fonction ayant une classe comme ancêtre ; côté applicatif, 1 531 sont des méthodes directement déclarées dans une classe et 59 des callbacks/fonctions locales déclarés dans une méthode. |
 | Signal PyQt | Affectation statique à `pyqtSignal(...)`; les connexions et émissions ne créent pas un signal supplémentaire. |
-| Timer | Six objets `QTimer` récurrents et treize sites `singleShot`; le total de 19 est un nombre de sites de planification, pas nécessairement d'objets simultanés. |
+| Timer | Six objets `QTimer` récurrents et quinze sites `singleShot`; le total de 21 est un nombre de sites de planification, pas nécessairement d'objets simultanés. |
 | Worker/processus | Classes QThread, workers multiprocessing, thread HTTP et boucle asyncio explicitement présents. |
 
 ### 1.2 Résultats quantitatifs
 
 | Élément | Applicatif/technique | Tests | Total |
 |---|---:|---:|---:|
-| Fichiers Python | 123 | 59 | 182 |
-| Classes | 151 | 148 | 299 |
-| Fonctions | 345 | 32 | 377 |
-| Méthodes, callbacks locaux inclus | 1 541 | 1 103 | 2 644 |
-| Constructeurs `__init__` | 95 | 47 | 142 |
-| Fonctions/méthodes `async` | 44 | 21 | 65 |
+| Fichiers Python | 125 | 65 | 190 |
+| Classes | 156 | 160 | 316 |
+| Fonctions | 351 | 33 | 384 |
+| Méthodes, callbacks locaux inclus | 1 590 | 1 174 | 2 764 |
+| Constructeurs `__init__` | 97 | 49 | 146 |
+| Fonctions/méthodes `async` | 46 | 21 | 67 |
 | Propriétés `@property` | 20 | 0 | 20 |
-| Dataclasses | 23 | — | 23 |
+| Dataclasses | 25 | — | 25 |
 | Enums | 3 | — | 3 |
-| Slots décorés `@pyqtSlot` | 10 | — | 10 |
-| Signaux PyQt déclarés | 32 | — | 32 |
+| Slots décorés `@pyqtSlot` | 11 | — | 11 |
+| Signaux PyQt déclarés | 33 | — | 33 |
 
-L'arborescence contient aussi 80 JSON de langue, 18 PNG, 7 Markdown, 5 BAT, 2 PowerShell, 1 SPEC PyInstaller, 1 ICO, 1 EA MQ4 et 1 notice texte.
+L'arborescence contient aussi 80 JSON de langue, 18 PNG, 11 Markdown, 5 BAT, 2 PowerShell, 1 SPEC PyInstaller, 1 ICO, 1 EA MQ4 et 1 notice texte.
+
+### 1.3 Delta technique vérifié depuis l'inventaire initial
+
+Deux modules applicatifs sont nouveaux dans le périmètre : `app/telegram/telegram_destination_binding.py` et `app/core/windows_vc_runtime.py`. Six modules de tests supplémentaires caractérisent la liaison de destination Telegram, la typographie, le bouton Paramètres du Copy Trader, l'ajustement des TP à l'entrée réelle, le Runtime Visual C++ et le mode d'entrée fractionnée commun à tous les groupes. Les autres évolutions de la v225 sont portées par des fichiers existants, principalement `connect_telegram.py`, `telegram_notification_outbox.py`, `money_management.py`, `mt5_order_execution.py`, `mt5_trade_lifecycle.py`, `mt5_trade_monitoring.py`, `connect_metatrader_mt5.py`, `app/onboarding/*`, `display_adaptation.py`, `about_dialog.py`, `copy_trader_mt5.py`, `main.py` et les catalogues de langue.
 
 ## 2. Organisation des packages et points d'entrée
 
@@ -178,7 +183,7 @@ Treize `QTimer.singleShot` couvrent fermeture/réactivation UI Telegram, rafraî
 
 ## 6. Signaux et slots PyQt
 
-Les 32 signaux statiques identifiés sont :
+Les 33 signaux statiques identifiés sont :
 
 | Classe | Signaux | Rôle |
 |---|---|---|
@@ -193,7 +198,7 @@ Les 32 signaux statiques identifiés sont :
 | `MessagesDialog` | `messages_loaded(list)`, `load_error(str)`, `send_ok()`, `send_error(str)` | Récupération manuelle et envoi. |
 | `TelegramApp` | `phone_request_signal()`, `code_request_signal(str)`, `update_button_signal(bool)`, `update_status_signal(str,QColor)`, `status_message(str,QColor)`, `selected_chats_changed()`, `supervision_state_changed()`, `telegram_reconnect_signal(str,object)`, `notification_outbox_enqueued(str)`, `new_trade_text(object)` | Authentification, état, pipeline MT5 et accusé durable. |
 
-Les dix slots décorés appartiennent à `TelegramApp` : `send_text_to_group`, `on_create_bot_finished`, `get_phone_number_dialog`, `request_code_dialog`, `update_button_text`, `update_status`, `_handle_telegram_reconnect_event`, `on_worker_finished_ok`, `on_worker_finished_err`, `on_get_chats_finished`. Les autres slots reposent sur les connexions Qt usuelles vers des méthodes/callbacks Python.
+Les onze slots décorés appartiennent à `TelegramApp` : `_show_telegram_destination_issue`, `send_text_to_group`, `on_create_bot_finished`, `get_phone_number_dialog`, `request_code_dialog`, `update_button_text`, `update_status`, `_handle_telegram_reconnect_event`, `on_worker_finished_ok`, `on_worker_finished_err`, `on_get_chats_finished`. Les autres slots reposent sur les connexions Qt usuelles vers des méthodes/callbacks Python.
 
 ## 7. Routes, transports et protocoles
 
@@ -262,6 +267,7 @@ Dans les tableaux suivants, « symboles » énumère les définitions publiques 
 | `app/core/startup_settings_dialog.py` | `StartupSettingsDialog`; démarrage automatique, affichage, supervision, token/QR/port. | préférences, supervision, PyQt5. | headers ; **UI**. |
 | `app/core/tab_bar_adaptation.py` | `configure_resilient_tab_widget`, `refresh_tab_widget_metrics`. | Qt widgets passés en argument. | `main` ; **UI**. |
 | `app/core/typography.py` | Facteur de taille, application au `QApplication` et rafraîchissement propriétaires. | préférences. | UI globale ; **infrastructure**. |
+| `app/core/windows_vc_runtime.py` | `VisualCppRuntimeStatus`, `windows_runtime_architecture`, `detect_visual_cpp_runtime`; détection en lecture seule du runtime Visual C++ x64/x86 et URL Microsoft associée. | `os`, `platform`, registre Windows. | assistant/connexion MT5 ; **infrastructure active**. |
 
 ### 8.3 Dashboard
 
@@ -362,6 +368,7 @@ Dans les tableaux suivants, « symboles » énumère les définitions publiques 
 | `app/telegram/telegram_forward_map_store.py` | `TelegramForwardMapStore`; restaure formats root/legacy. | `telegram_forward_map.json`. | transfert/réponses ; **store actif**. |
 | `app/telegram/telegram_deleted_message_audit.py` | `TelegramDeletedMessageAudit`; cache messages, empreinte, suppression/recréation, log borné. | cache JSON + log. | handlers Telegram ; **audit actif**. |
 | `app/telegram/telegram_notification_outbox.py` | six classes; store SQLite, leasing, ordre par batch, retry, dead-letter, gestion manuelle. | `telegram_notification_outbox.sqlite3`. | publications MT5→Telegram ; **infrastructure active**. |
+| `app/telegram/telegram_destination_binding.py` | `TelegramDestinationBinding`, `TelegramDestinationBindingRepository`, conversion peer/channel ; association immuable compte Telegram/destination. | `ProfileJsonDocumentStore`, `telegram_destination.json`. | `TelegramApp` et outbox ; **repository actif**. |
 | `app/telegram/telegram_reconnect.py` | dataclass `TelegramReconnectState`, calendrier et format durée. | mémoire. | watchdog Telegram ; **state/policy actif**. |
 | `app/telegram/smart_automation_persistence.py` | `SmartAutomationPersistence`; settings/dictionnaire/log. | app settings, dictionary JSON, `smart_command.log`. | Smart engine ; **repository**. |
 | `app/telegram/smart_command_detector.py` | `SmartCommandDetector.detect`; façade sans action MT5. | engine injecté. | filtre/Telegram ; **service actif**. |
@@ -761,6 +768,7 @@ Racine globale : `%USERPROFILE%/.novabot`. Racine profil : `%USERPROFILE%/.novab
 | `telegram_forward_map.json` | JSON | ForwardMapStore | Telegram | source→destination/root reply. |
 | `telegram_notification_outbox.sqlite3` | SQLite | OutboxStore | sender/dialog/supervision | notifications durables. |
 | `group_id.txt` | entier texte | Telegram bot flow | Telegram/onboarding | groupe privé NovaBOT. |
+| `telegram_destination.json` | JSON versionné : compte, peer, channel, access hash, titre, bot | `TelegramDestinationBindingRepository` | Telegram/outbox | liaison de destination propre au profil. |
 | `telegram_command_dictionary.json` | JSON | SmartPersistence | Smart engine/dialog | expressions personnalisées. |
 | `mt5_app_settings.json` | JSON partagé | MT5/MM repositories | MT5/MM/onboarding | connexion UI, `mm_settings`, contrôles. |
 | `be_watchlist.json` | JSON versionné | LifecycleWatchlistStore | lifecycle au restart | batchs et suivi. |
@@ -860,7 +868,7 @@ La recherche statique n'a mis en évidence aucun autre module de production tota
 
 ## 15. Inventaire des tests
 
-La suite `unittest` contient 59 fichiers et 747 scénarios détectés. Le tableau précise le domaine, les composants principalement traversés et les comportements caractérisés. Un test « AST » inspecte la structure/source sans nécessairement instancier l'application.
+La suite `unittest` contient 65 fichiers et 800 méthodes de test détectées. Le tableau précise le domaine, les composants principalement traversés et les comportements caractérisés. Un test « AST » inspecte la structure/source sans nécessairement instancier l'application.
 
 | Fichier de test | Domaine / composants | Comportements principalement caractérisés |
 |---|---|---|
@@ -921,6 +929,12 @@ La suite `unittest` contient 59 fichiers et 747 scénarios détectés. Le tablea
 | `test_telegram_signal_correction.py` | correction d'édition | ajout TP manquant, modification, identité bloquée, idempotence et pipeline. |
 | `test_telegram_trade_reply_publication.py` | bridge Telegram↔MT5 | replies, alias/root, Smart order, STOP, batch composite, validation différée, outbox. |
 | `test_typography.py` | police | défaut et facteurs normal/moyen/grand. |
+| `test_adjust_tp_to_actual_entry.py` | MM/exécution/lifecycle | modes global/par groupe, ordre avant split, translation BUY/SELL, exclusion STOP et persistance. |
+| `test_copy_trader_settings_button.py` | Copy Trader/UI | présence et câblage du bouton Paramètres partagé. |
+| `test_money_management_reset_defaults.py` | Money Management | confirmation, copie indépendante des valeurs par défaut, persistance et fermeture sûre. |
+| `test_telegram_destination_binding.py` | Telegram/destination | peer marqué, repository, changement de compte, résolution et réaffectation outbox. |
+| `test_windows_vc_runtime.py` | Windows/onboarding | architecture x64/x86, lecture registre, URL officielle et parcours sans runtime. |
+| `test_zone_split_all_groups.py` | entrée fractionnée | configuration globale complète, conservation du mode par groupe et défaut non disruptif. |
 | `test_validation_asset_family_thresholds.py` | familles validation | classifier central et spreads Forex/métaux/indices/crypto/énergies strict/balanced. |
 | `test_validator_characterization.py` | moteur de règles | ordre, exceptions, score borné et identité du Signal. |
 
@@ -944,7 +958,7 @@ Composants sans couverture directe dédiée ou seulement couverts par AST/façad
 
 Commande : `python -m unittest discover -s validation/tests -p "test_*.py"`.
 
-État relevé sur cette même arborescence pendant l'analyse : **747 tests exécutés, 26 échecs d'assertion, 0 erreur**. Les échecs se concentrent sur des contrats historiques About, classifier/lifecycle/messages/monitoring, onboarding/progressive et surtout Telegram Filter. Ils ne sont ni corrigés ni masqués dans cet inventaire. La compilation `python -m compileall app validation main.py` a réussi.
+État relevé sur cette même arborescence pendant l'analyse : **800 tests exécutés, 26 échecs d'assertion, 0 erreur**. Les échecs se concentrent sur des contrats historiques About, classifier/lifecycle/messages/monitoring, onboarding/progressive et surtout Telegram Filter. Ils ne sont ni corrigés ni masqués dans cet inventaire. La vérification syntaxique des 190 fichiers Python a réussi.
 
 ## 16. Tableau récapitulatif des composants structurants
 
@@ -984,16 +998,16 @@ Commande : `python -m unittest discover -s validation/tests -p "test_*.py"`.
 
 ## 17. Synthèse finale
 
-1. **Fichiers analysés : 298** fichiers utiles.
-2. **Fichiers Python applicatifs/techniques : 123**.
-3. **Fichiers de tests : 59**.
-4. **Classes applicatives/techniques : 151** ; 299 tests inclus.
-5. **Fonctions applicatives/techniques : 345** ; 377 tests inclus.
-6. **Méthodes applicatives/techniques : 1 541**, dont 1 489 directement déclarées et 52 callbacks locaux ; 2 644 tests inclus.
-7. **Signaux PyQt : 32** ; **slots décorés : 10**.
+1. **Fichiers analysés : 310** fichiers utiles.
+2. **Fichiers Python applicatifs/techniques : 125**.
+3. **Fichiers de tests : 65**.
+4. **Classes applicatives/techniques : 156** ; 316 tests inclus.
+5. **Fonctions applicatives/techniques : 351** ; 384 tests inclus.
+6. **Méthodes applicatives/techniques : 1 590**, dont 1 531 directement déclarées et 59 callbacks locaux ; 2 764 tests inclus.
+7. **Signaux PyQt : 33** ; **slots décorés : 11**.
 8. **Threads/workers/processus : 8 unités structurantes** : quatre QThread, deux processus workers, un thread HTTP, une boucle asyncio dédiée ; plus un processus PowerShell temporaire d'installation.
-9. **Timers : 19 sites** : six QTimer récurrents et treize `singleShot`.
-10. **Persistance : 40 artefacts/familles nommés**, dont deux bases SQLite, plus 80 JSON de langue en lecture seule et des sidecars/backups dynamiques.
+9. **Timers : 21 sites** : six QTimer récurrents et quinze `singleShot`.
+10. **Persistance : 41 artefacts/familles nommés**, dont deux bases SQLite, plus 80 JSON de langue en lecture seule et des sidecars/backups dynamiques.
 11. **Dépendances principales :** PyQt5, Telethon, MetaTrader5, cryptography/Fernet, pyzmq, SQLite, pywinauto optionnel et stdlib Windows/réseau/concurrence.
 12. **Points d'entrée :** `main.py`, scripts BAT/PS1, worker MT5, worker MT4, diagnostic supervision, hook/build PyInstaller et EA MQ4.
 13. **Propriétaires d'état :** profile manager, TelegramApp/stores, MT5RuntimeState/LifecycleRuntimeState, MoneyManagementController, DashboardAnalyticsStore, CopyTraderMT5 et SupervisionRuntime.

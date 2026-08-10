@@ -4,8 +4,9 @@
 
 # Complete Functional Analysis of NovaBOT
 
-Analysis date: August 8, 2026  
-Source of truth: source code in `NOVABOT-WORKING v209`  
+Initial analysis date: August 8, 2026  
+Last verification and update: August 10, 2026  
+Source of truth: source code in `NOVABOT-WORKING v225`  
 Document type: functional description; no source-code changes
 
 ## 1. Scope, method, and evidence level
@@ -24,7 +25,22 @@ Status terminology:
 
 ### 1.1 Inventory
 
-The tree contains 298 useful files: 182 Python files, 80 JSON files, 18 PNG files, 7 Markdown files, 5 BAT files, 2 PowerShell scripts, one PyInstaller SPEC, one ICO, one MQ4 EA, and one text notice. The 80 language files represent eight translation domains in ten languages. The test suite contains 59 `test_*.py` modules.
+The tree contains 310 useful files: 190 Python files (125 production/technical files and 65 test modules), 80 JSON files, 18 PNG files, 11 Markdown files, 5 BAT files, 2 PowerShell scripts, one PyInstaller SPEC, one ICO, one MQ4 EA, and one text notice. The 80 language files represent eight translation domains in ten languages. The suite exposes 800 test methods.
+
+### 1.2 Functional changes verified in revision v225
+
+This revision incorporates the following behaviors that are demonstrably wired in the current code:
+
+- a persistent Telegram destination binding tied to the Telegram account that created the private group, with controlled detection and recovery after an account change;
+- confirmation-protected reset of Money Management settings only;
+- automatic LIMIT conversion for an adversely distant single entry when auto-LIMIT is enabled;
+- an “Adjust TP to actual entry” option, global or per Telegram group, for single, multiple, and split entries, excluding STOP orders;
+- one split-entry configuration for all groups in addition to the historical per-group mode;
+- an algorithmic-trading activation prompt from onboarding, preceded by a Visual C++ Runtime check matching the Windows architecture;
+- font-size preference propagation to application dialogs and windows, deliberately excluding profile management;
+- a Settings button in Copy Trader;
+- explicit entry-price closure classification when a TP was intentionally moved to entry;
+- MT5 lifecycle monitoring that tolerates transient unavailable ticks without inventing a market price or closure evidence.
 
 ## 2. Purpose and functional architecture
 
@@ -50,13 +66,13 @@ The main window has Telegram, MetaTrader 5, Dashboard, and Copy Trader tabs. The
 
 ### 3.4 Setup assistant
 
-The optional checklist opens for new profiles and can always be reopened. It navigates to existing modules instead of duplicating their screens. Its eight checks are Telegram API credentials, fully authorized Telegram connection, NovaBOT bot/private group, at least one source, filtering settings, MT5 connection, an explicit `mm_settings` document, and Telegram listening enabled. Progress is stored in `data/onboarding.json`; historical completion and current readiness are distinct. Copy Trader, MT4 bridge, and Companion are outside its scope.
+The optional checklist opens for new profiles and can always be reopened. It navigates to existing modules instead of duplicating their screens. Its eight checks are Telegram API credentials, fully authorized Telegram connection, NovaBOT bot/private group, at least one source, filtering settings, MT5 connection, an explicit `mm_settings` document, and Telegram listening enabled. Progress is stored in `data/onboarding.json`; historical completion and current readiness are distinct. Copy Trader, MT4 bridge, and Companion are outside its scope. After MT5 connects, onboarding also checks algorithmic-trading permission and can call the existing MT5 activator. It first detects Windows architecture and the Visual C++ 14 Runtime through the registry; when missing, it displays the matching official x64/x86 Microsoft download link. This assistance is not a ninth checklist item and terminal permission must still be confirmed.
 
 ## 4. Preferences, languages, themes, and display
 
 Ten languages are present: French, English, Spanish, German, Italian, Portuguese, Arabic, Chinese, Japanese, and Russian. Translation domains are `main`, `telegram`, `mt5`, `copy_mt5`, `dashboard`, `documentation`, `notifications`, and `onboarding`. System-language detection is cached for the process and falls back to French. Global preferences live in `.novabot/config.json`.
 
-Themes are light, dark, and light blue. Display modes are compact, balanced, extended, zoom, original, and automatic; the default is original. Font modes are normal, medium, and large. Display adaptation reapplies window geometry, tab metrics, and typography after screen/DPI changes. All module headers use theme-aware logos and a shared About dialog. The code currently reports version `v2026.0.200`, build `200`, the NovaBOT copyright, GitHub link, and third-party components.
+Themes are light, dark, and light blue. Display modes are compact, balanced, extended, zoom, original, and automatic; the default is original. Font modes are normal, medium, and large. Display adaptation reapplies window geometry, tab metrics, and typography after screen/DPI changes. Font preference is propagated to application windows and dialogs, including About and Copy Trader; profile management is deliberately excluded. All module headers use theme-aware logos and a shared About dialog, and Copy Trader now exposes the shared Settings button. The code reports version `v2026.0.200`, build `200`, `Copyright © 2026 NovaBOT by MintoLabs`, and “View on GitHub” linking to `https://github.com/MintoLabs-AI/`.
 
 ## 5. Telegram
 
@@ -72,6 +88,8 @@ The watchdog distinguishes expected and unexpected disconnections, prevents conc
 
 NovaBOT talks to BotFather to create the bot, configure description/About/photo, creates a private group, adds the bot, and confirms administrator promotion with bounded retries. The onboarding step requires bot credentials and a non-zero `group_id.txt`. Deletion supports local cleanup and Telegram/BotFather operations while keeping external failures visible.
 
+The destination is additionally persisted in `telegram_destination.json` as an account-bound structure containing Telegram account ID, marked peer ID, raw channel ID, access hash, group title, and bot username. On authentication NovaBOT verifies that the binding belongs to the current account and resolves the actual entity. Account changes and invalid/inaccessible entities are reported instead of blindly reusing a stale peer. `group_id.txt` remains as a compatibility aid.
+
 ### 5.4 Sources and listening
 
 Users select channels, groups, or user conversations. Selection is stored in `selected_chats.json` and reused by zone splitting, unconditional group execution, TP offset, identity, and Dashboard. When listening is active, Telethon handlers cover new, edited, and deleted messages. Selection changes can rebuild handlers without recreating the session.
@@ -86,7 +104,7 @@ After admission, Telegram first emits the execution envelope to MT5, then forwar
 
 Edited messages are reparsed only when their fingerprint changes. `TelegramSignalCorrectionService` locates the correlated live batch, rejects identity/entry/TP-count changes, modifies SL/TP, opens missing TP operations per original branch, and avoids reopening historical closed tickets. Plan persistence is atomic only when the full correction succeeds.
 
-Deleted-message listening is passive: it records known text, unknown deletions, and same-text recreation under a new ID without replaying or blocking anything. Durable Telegram notifications use a profile SQLite outbox with leases, retry scheduling, ordered delivery by batch, dead-letter management, parent-context handling, and lifecycle acknowledgement only after durable insertion.
+Deleted-message listening is passive: it records known text, unknown deletions, and same-text recreation under a new ID without replaying or blocking anything. Durable Telegram notifications use a profile SQLite outbox with leases, retry scheduling, ordered delivery by batch, dead-letter management, parent-context handling, and lifecycle acknowledgement only after durable insertion. Pending notifications may be retargeted when an equivalent valid destination binding is restored; content and deduplication identity are preserved.
 
 ## 6. Parser and broker symbols
 
@@ -98,7 +116,7 @@ The parser can use `mt5_sessions/symbol_info.json` as a hint but does not requir
 
 Terminal discovery is centralized and cached across MT5 and Copy Trader. It scans validated MT4/MT5 installations and reads server data plus a central catalog. Connection uses encrypted profile credentials and a selected terminal path. Connection and symbol collection run in one QThread job; symbol refresh failure does not invalidate a successful account connection. A 2.5-second watchdog detects runtime loss.
 
-Before orders, NovaBOT checks terminal, account, symbol, and algorithmic-trading permissions. If Algo Trading is disabled during a Telegram path, it reports this, asks the user, and can activate the Windows terminal control; the original signal stays blocked and is not silently replayed. Manual text entry uses the same parser/execution pipeline.
+Before orders, NovaBOT checks terminal, account, symbol, and algorithmic-trading permissions. If Algo Trading is disabled during a Telegram path, it reports this, asks the user, and can activate the Windows terminal control; the original signal stays blocked and is not silently replayed. Onboarding can invoke the same activator after its read-only Visual C++ Runtime check. Manual text entry uses the same parser/execution pipeline.
 
 ## 8. Money Management
 
@@ -125,19 +143,21 @@ Three volume modes are wired: fixed lot per TP (or shared total), individual TP1
 
 Risk uses MT5 equity unless positive virtual capital is enabled. The vault persists protected thresholds, but `get_risk_base()` returns the full virtual capital: the protected amount is not subtracted.
 
-Execution controls include deviation, auto-LIMIT, asset-family tolerance, spread adjustment, duplicate checks, maximum open/pending trades, balanced/strict validation, and per-group unconditional execution. The group override is active only when auto-LIMIT or automatic tolerance is enabled; it bypasses distance handling for the MARKET branch, not terminal, volume, validation, duplicate, or trade-count checks.
+Execution controls include deviation, auto-LIMIT, asset-family tolerance, spread adjustment, duplicate checks, maximum open/pending trades, balanced/strict validation, and per-group unconditional execution. The group override is active only when auto-LIMIT or automatic tolerance is enabled; it bypasses distance handling for the MARKET branch, not terminal, volume, validation, duplicate, or trade-count checks. A confirmation-protected Reset button replaces only the profile Money Management document with an independent copy of `DEFAULT_MM_SETTINGS`, persists it, and closes the dialog to prevent stale widgets from overwriting the reset.
 
 Protection includes BE after TP1, SL to TP1 after TP2, previous-TP following, secure-on-pips, progressive partial closes, and TP offset. Progressive close modes are 25/25/25/25, 40/20/20/20, 50/20/20/10, or a custom total of 100%. TP offset can be global or per group and selected for TP1–TP4; it only moves valid TPs toward entry and never crosses entry.
+
+“Adjust TP to actual entry” is a separate disabled-by-default global/per-group policy. It applies to single, multiple, and split entries, but excludes STOP orders. It preserves each planned distance with `adjusted TP = reference TP + (confirmed actual entry - planned entry)`. MARKET uses the selected execution price; a triggered pending is adjusted later from its confirmed `price_open`. Adjusted tickets and reference levels are persisted to prevent double translation, and edited-signal correction rebuilds the same references.
 
 ## 9. Admission and order type
 
 MARKET uses ask for BUY and bid for SELL. `usable_tick()` tries twice. Explicit BUY LIMIT, SELL LIMIT, BUY STOP, and SELL STOP retain their intended geometry; an explicit pending order on the wrong side is rejected.
 
-For MARKET instructions, the policy may keep MARKET, block a distant single entry, or convert a zone to LIMIT. Automatic tolerances are Forex 0.02%, metals 0.05%, indices 0.05%, energies 0.10%, and crypto 0.10% of current price. Historical points are used when automatic tolerance is disabled or unusable. `ExecutionAdmissionPolicy.is_tradable()` currently always returns true; no active weekend calendar block exists.
+For MARKET instructions, a favorable or tolerated single entry remains MARKET. An adversely distant single entry is converted to BUY/SELL LIMIT at its planned price when auto-LIMIT is enabled; “single entry too far” blocks only when auto-LIMIT is disabled. Explicit LIMIT/STOP intent bypasses this conversion. Automatic tolerances are Forex 0.02%, metals 0.05%, indices 0.05%, energies 0.10%, and crypto 0.10% of current price. Historical points are used when automatic tolerance is disabled or unusable. `ExecutionAdmissionPolicy.is_tradable()` currently always returns true; no active weekend calendar block exists.
 
 ## 10. Split entries
 
-Zone splitting is configured per Telegram source and requires a true zone of at least the configured width. Explicit STOP signals are never split. BUY uses the high bound as entry 1 and low bound as entry 2; SELL reverses that assignment. A MARKET signal produces MARKET plus LIMIT branches, while explicit LIMIT produces two LIMIT branches. TP volumes are calculated first, must be divisible into two valid broker lots, and are then split.
+Zone splitting has mutually exclusive “All groups” and “Per group” modes. Per-group mode remains the compatibility default. Global mode shares activation, minimum zone width, “Allow LIMIT after TP1,” and “Place entry-1 TP at entry” across all sources; global and per-group documents remain separately stored when switching mode. A true qualifying zone is still required and explicit STOP signals are never split. BUY uses the high bound as entry 1 and low bound as entry 2; SELL reverses that assignment. A MARKET signal produces MARKET plus LIMIT branches, while explicit LIMIT produces two LIMIT branches. TP volumes are calculated first, must be divisible into two valid broker lots, and are then split.
 
 Both branches share batch, magic, SL, TPs, and Telegram context while retaining `entry_1`/`entry_2` roles. Broker-confirmed MARKET TP1 cancels untriggered sibling LIMIT orders unless “Allow LIMIT after TP1” is enabled; TP1 notification precedes cancellation notification. Manual closure of the only MARKET in a composite can cancel the only LIMIT. When enabled, entry-2 activation moves all still-open entry-1 TPs to each position's actual entry. Manual TP1 BE is scoped to sibling positions in the same branch. Validation runs per branch, not as one aggregate composite-risk decision.
 
@@ -174,7 +194,7 @@ Smart families cover close, half close, BE, secure, SL modification, TP modifica
 
 The persistent watchlist stores symbol, direction, entry, SL, TP levels, tickets, pending tickets, batch/magic, source and Telegram context, branch roles, notification state, progressive state, Smart results, closure evidence, and delivery acknowledgement.
 
-Closure classification uses broker deals/history, magic/tag/ticket/price tolerance, and distinguishes TP, SL, Smart Close, progressive reductions, manual closes, and unknown evidence. Live price alone does not confirm TP1 actions that require broker confirmation.
+Closure classification uses broker deals/history, magic/tag/ticket/price tolerance, and distinguishes TP, SL, Smart Close, progressive reductions, manual closes, entry-price closes, and unknown evidence. A TP deliberately moved to entry is reported as “TPn closed at entry price,” not “TPn reached.” Live price alone does not confirm TP1 actions that require broker confirmation. A transient unavailable tick does not fabricate a TP crossing: the batch remains tracked until a usable tick or historical proof exists.
 
 Automatic behavior includes TP notifications, BE after TP1, manual-TP1 BE with broker-distance retry, previous-TP SL following, progressive closes, split-entry LIMIT cancellation, entry-1 TP protection after entry 2, restart resynchronization, terminal classification, idempotent final publication, Dashboard archiving, and cleanup only after durable publication state allows it.
 
@@ -204,7 +224,7 @@ The observer projects public profile, Telegram, MT5, Dashboard, configuration, M
 
 ## 19. Persistence, caches, and logs
 
-Profile data includes startup/settings/onboarding, selected chats, filter settings/processed fingerprints, forward map, deletion cache, notification outbox, Smart dictionary, group ID, MT5/MM settings, aliases, lifecycle watchlist, chat history, Dashboard SQLite, Copy Trader settings, and ticket map. Secrets include Telegram Fernet key/API/bot/session, MT5 key/credentials, encrypted Copy Trader passwords, and DPAPI supervision token. Logs cover Telegram/MT5/Copy consoles, filter, Smart commands, deletions, trades, market snapshots, validation CSV, and MT4 worker.
+Profile data includes startup/settings/onboarding, selected chats, filter settings/processed fingerprints, forward map, deletion cache, notification outbox, Smart dictionary, group ID, structured `telegram_destination.json` binding, MT5/MM settings, aliases, lifecycle watchlist, chat history, Dashboard SQLite, Copy Trader settings, and ticket map. Secrets include Telegram Fernet key/API/bot/session, MT5 key/credentials, encrypted Copy Trader passwords, and DPAPI supervision token. Logs cover Telegram/MT5/Copy consoles, filter, Smart commands, deletions, trades, market snapshots, validation CSV, and MT4 worker.
 
 Profile JSON stores use atomic or tolerant writes according to their role. Analytics/logging/passive-audit failures are fail-open. Missing data required for trading produces an explicit refusal.
 
@@ -249,7 +269,7 @@ python -m compileall -q app validation main.py
 python -m unittest discover -s validation/tests -p "test_*.py"
 ```
 
-Observed result: compilation succeeded; 747 tests ran; 26 assertion failures; 0 errors. Coverage includes profiles, CLI, languages/themes/display/About/onboarding, parser/aliases/orders/filter/Telegram/outbox/Smart/MM/split/validation, MT5 transports/actions/lifecycle, Dashboard, supervision, Copy Trader, workers, EA/installer contracts, and bridge recovery. Tests use fakes and AST for some contracts and do not prove external Telegram, broker, terminal, market, or network availability.
+Observed result: compilation succeeded; 800 tests ran; 26 assertion failures; 0 errors. Coverage includes profiles, CLI, languages/themes/dialog typography/display/About/onboarding and Visual C++ detection, parser/aliases/orders/single-entry auto-LIMIT, filter/Telegram destination binding/outbox/Smart, MM reset/TP offset/actual-entry TP adjustment/global and per-group split/validation, MT5 transports/actions/lifecycle, Dashboard, supervision, Copy Trader Settings, workers, EA/installer contracts, and bridge recovery. Tests use fakes and AST for some contracts and do not prove external Telegram, broker, terminal, market, or network availability.
 
 The 26 failures comprise one outdated About metadata expectation, seven classifier expectations, one lifecycle TP ordering/persistence expectation, one terminal manual/unknown message expectation, one live-TP monitoring expectation, one onboarding style expectation, one progressive preset/default expectation, and thirteen Telegram-filter assertions including four parameterized cases. No failure was corrected or hidden.
 
