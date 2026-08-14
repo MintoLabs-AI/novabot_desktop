@@ -1,12 +1,12 @@
 # NovaBOT User Guide
 
-🇫🇷 **French version:** [NOVABOT_USER_GUIDE_2026-08-05_FR.md](NOVABOT_USER_GUIDE_2026-08-05_FR.md)
+🌐 **Language:** [Français](NOVABOT_USER_GUIDE_2026-08-05_FR.md) | English
 
 ---
 
 # NovaBOT User Guide
 
-Date: August 5, 2026  
+Last updated: August 14, 2026  
 Audience: NovaBOT Desktop and NovaBOT Companion users
 
 ## 1. Overview
@@ -15,14 +15,14 @@ This guide walks new users through the process from the first time they open Nov
 
 Each chapter follows the recommended setup order.
 
-NovaBOT is a Windows application that connects Telegram to MetaTrader 5. It can listen to Telegram groups or channels, recognize their trading signals, apply the rules of the active profile, execute orders on MT5, monitor their lifecycle, and publish the results to a private Telegram group.
+NovaBOT is a Windows application that connects Telegram to MetaTrader 5 or MetaTrader 4. It can listen to Telegram groups or channels, recognize their trading signals, apply the active profile’s rules, execute orders on the active platform, monitor their lifecycle, and publish the results to a private Telegram group.
 
 The application includes four main modules:
 
 - **Telegram**: connection, source selection, filtering, and listening;
-- **MetaTrader 5**: broker connection, Money Management, execution, and monitoring;
-- **Dashboard**: statistics based on MT5 executions and evidence;
-- **Copy Trader**: copying from an MT5 source account to an MT5 or MT4 target.
+- **MetaTrader 5 or 4**: platform and installation selection, broker connection, Money Management, execution, and monitoring;
+- **Dashboard**: statistics based on executions and evidence from the active platform;
+- **Copy Trader**: MT5 to MT5/MT4 copying, or copying the primary MT4 account to MT5.
 
 NovaBOT Companion lets you remotely view NovaBOT's status. Companion is a read-only monitoring tool: it cannot send trading orders.
 
@@ -34,10 +34,10 @@ Before you begin, prepare:
 
 - a Telegram account accessible from the official application;
 - an `API ID` and `API Hash` obtained from `my.telegram.org`, under **API development tools**;
-- a working MetaTrader 5 installation;
-- the login, password, and server for the MT5 account;
-- algorithmic trading authorization in MT5;
-- for an MT4 target: an MT4 installation and DLL imports enabled for the NovaBOT EA.
+- a working MetaTrader 5 or MetaTrader 4 installation;
+- the login, password, and server for the selected account;
+- for MT5: algorithmic trading enabled and, if assisted activation requests it, the Microsoft Visual C++ runtime matching the system;
+- for MT4: the compiled NovaBOT EA, mql-zmq, ZeroMQ DLLs, AutoTrading, and DLL imports enabled.
 
 The MetaTrader terminal must be able to connect to the selected account and display the broker's symbols. Names may vary by broker, for example `XAUUSD`, `XAUUSD-VIP`, or another variant.
 
@@ -50,7 +50,7 @@ For an initial setup, follow this order:
 3. create the profile's bot and private Telegram group;
 4. select sources in **TELEGRAM TRANSFER**;
 5. configure Telegram filtering;
-6. connect the MT5 account;
+6. select MT5 or MT4 and connect the MetaTrader account;
 7. collect symbols or generate aliases if necessary;
 8. configure Money Management;
 9. send a test signal on a demo account;
@@ -64,8 +64,8 @@ Make sure that:
 - Telegram shows a connected status;
 - the private NovaBOT group exists;
 - at least one Telegram source is selected;
-- MT5 shows the correct login and server;
-- algorithmic trading is allowed;
+- the header shows the correct platform, login, and server;
+- MT5 algorithmic trading or MT4 AutoTrading is enabled;
 - the volume mode and its values match the intended risk;
 - BE, protection, and progressive-close automations are deliberately enabled or disabled.
 
@@ -84,7 +84,7 @@ At startup, NovaBOT displays the profile manager.
 Each profile has its own:
 
 - Telegram credentials and sessions;
-- MT5 account;
+- MetaTrader account and platform;
 - selected Telegram sources;
 - filtering rules;
 - Money Management settings;
@@ -92,6 +92,23 @@ Each profile has its own:
 - histories, mappings, statistics, and monitoring settings.
 
 A change made in one profile should therefore not be considered active in other profiles.
+
+### Profile setup assistant
+
+When a new profile is created, NovaBOT displays an optional checklist. It opens existing screens and automatically verifies eight steps:
+
+1. Telegram API credentials;
+2. complete Telegram connection;
+3. NovaBOT bot and private group;
+4. Telegram groups to monitor;
+5. verified Telegram filtering;
+6. MetaTrader connection;
+7. saved Money Management settings;
+8. prepared Telegram listening.
+
+**Skip guided setup** closes the flow without removing completed settings. **Resume later** keeps progress. Once everything is complete, the button becomes **Close**. The global button reads **Configure profile** while steps are missing, then **Profile status** once setup is complete. Its color summarizes the state: red when no step is ready, orange when setup is partial, and green when complete.
+
+Telegram is considered ready only after real authentication; closing the phone-number prompt does not complete the step. The bot/group step turns green as soon as creation and administrator assignment are confirmed. Copy Trader, the MT4 bridge, and Companion deliberately remain outside this primary checklist.
 
 ### Importing or exporting a profile
 
@@ -163,9 +180,9 @@ A Smart command sent as a reply must have a recognized parent message. A command
 
 ### 5.6 Enabling listening
 
-When Telegram, the bot, the private group, the sources, and MT5 are ready, click **ENABLE LISTENING**.
+When Telegram, the bot, the private group, the sources, and the active MetaTrader platform are ready, click **ENABLE LISTENING**.
 
-NovaBOT then transfers admitted messages to the private group and submits recognized signals to the MT5 pipeline. Click again to disable listening.
+NovaBOT then transfers admitted messages to the private group and submits recognized signals to the selected MT4 or MT5 pipeline. Click again to disable listening.
 
 ### 5.7 Manually retrieving an earlier signal
 
@@ -173,46 +190,52 @@ The **RETRIEVE A TRADE FROM A MESSAGE** button lets you browse a conversation, s
 
 This action remains subject to the rules of the active profile. The tolerances and options used are those saved when the message is retrieved.
 
-## 6. Connecting MetaTrader 5
+## 6. Connecting MetaTrader 5 or MetaTrader 4
 
-### 6.1 Preparing MT5
+In the MetaTrader module, first choose **MetaTrader 5** or **MetaTrader 4** under **Platform**, then select an installation matching that choice. Server groups filter the catalog so the exact server is easier to select.
 
-Before connecting NovaBOT:
+### 6.1 MetaTrader 5 connection
 
-1. install and open the broker's MT5 terminal;
-2. make sure the account can connect in MT5;
-3. enable algorithmic trading;
-4. display the required symbols in Market Watch.
+1. Select **MetaTrader 5** and the detected terminal.
+2. Enter the login, password, and server.
+3. Use **DISCOVER SERVERS** if needed.
+4. Click **CONNECT METATRADER**.
+5. Check the account, server, balance, and algorithmic-trading status in the console and header.
 
-### 6.2 Connecting from NovaBOT
+If algorithmic trading is disabled, NovaBOT can offer assisted activation. The assistant checks for the required Visual C++ runtime and provides the official Microsoft x64 or x86 link when it is missing. The account is ready only when the MT5 connection and trading authorization are consistent.
 
-1. Open the **MetaTrader 5** tab.
-2. Select the detected terminal path. Use the selector if several installations exist.
+### 6.2 Preparing and connecting MetaTrader 4
+
+MT4 uses NovaBOT’s local bridge: a compiled EA, mql-zmq, and ZeroMQ DLLs. If a component is missing, **CONNECT METATRADER** asks you to install the bridge instead of reporting a false connection.
+
+1. Select **MetaTrader 4** and the exact installation.
+2. If needed, use **INSTALL MT4 BRIDGE** and follow chapter 10.
 3. Enter the login, password, and server.
-4. Click **DISCOVER SERVERS** if the server is not listed.
-5. Click **CONNECT METATRADER**.
-6. In the console, check the account name, login, server, balance, and algorithmic-trading status.
+4. Click **CONNECT METATRADER**.
+5. Wait for the EA to publish `READY`, then make sure the header shows **MT4**, the expected server, and the expected login.
 
-NovaBOT then monitors the terminal and updates the interface if the connection is lost.
+Account login uses a temporary profile-scoped INI file. NovaBOT does not use pywinauto to type account credentials. The button becomes **DISCONNECT METATRADER** only after the bridge, EA, and observed account are confirmed. A running terminal without a working EA is not a NovaBOT connection.
 
 ### 6.3 Broker symbols and aliases
 
-After connecting:
+After the first connection:
 
-- **COLLECT SYMBOLS** records information about the available symbols;
-- **GENERATE ALIASES (BROKER)** builds mappings between common names and broker-specific names.
+- **COLLECT SYMBOLS** records information about available symbols;
+- **GENERATE ALIASES (BROKER)** builds mappings between common and broker-specific names.
 
-Use these functions if Telegram publishes `GOLD` or `XAUUSD` while the broker uses a specific suffix. Always check the symbol shown in the execution preview.
+Collection is not repeated unnecessarily at every startup. Use the button when the broker adds symbols, after changing account/server, or when symbol resolution fails. Always check the resolved broker symbol, such as `XAUUSD-VIP` instead of `XAUUSD`.
 
 ### 6.4 Testing without Telegram
 
-The MT5 manual-entry area lets you submit signal text to the same parser and execution pipeline. Use a demo account and a minimum lot to validate aliases and Money Management.
+The manual-entry area sends text through the same parser and the active platform engine. Use a demo account and a minimum lot to validate aliases, Money Management, and notifications before enabling listening.
 
 ## 7. Configuring Money Management
 
-Open the MT5 tab and click **MONEY MANAGEMENT**. Settings are profile-specific.
+Open the MetaTrader module and click **MONEY MANAGEMENT**. Settings are profile-specific and apply to the active MT4 or MT5 engine.
 
 The `?` icons provide a description of the corresponding setting.
+
+The reset button restores default Money Management values only after confirmation. Export the profile or record custom values before using it.
 
 ### 7.1 Capital Management
 
@@ -237,7 +260,7 @@ The final volume is always adjusted to the minimum, maximum, and step allowed by
 - **Use virtual capital** replaces the displayed real base for the configured calculation.
 - **Enable vault** stores protected-capital and threshold information in the profile.
 
-Check the four displayed values: real MT5 balance, virtual capital, protected capital, and risk calculation base.
+Check the four displayed values: real MetaTrader balance, virtual capital, protected capital, and risk calculation base.
 
 ### 7.2 Execution
 
@@ -288,6 +311,22 @@ You can choose:
 
 The initial volume must be strictly greater than the activation minimum. An option can close the residual volume at the final TP.
 
+#### Take Profit offset
+
+This option moves only the selected TP1-to-TP4 levels closer to entry. It can apply one configuration to all groups or a separate offset and TP selection to each Telegram group. For BUY, the level is reduced; for SELL, it is increased.
+
+#### Adjust TPs to actual entry
+
+This option preserves the planned distances between signal entry and TPs, then reapplies them from the actual execution price for single, multiple, or split entries. It can be configured for all groups or per group.
+
+A safety rule prevents adjustment when it could unnecessarily extend a trade:
+
+- BUY: adjust only while current price remains strictly below actual entry;
+- SELL: adjust only while current price remains strictly above actual entry;
+- equal price, already favorable price, or unavailable tick: no adjustment.
+
+SL is not moved and STOP orders are excluded.
+
 ### 7.4 Controls
 
 #### Prevent duplicates
@@ -315,7 +354,7 @@ If the broker's minimum or volume step prevents an actual reduction, execution i
 
 ### 7.5 Split Entry and Groups
 
-Split entry is configured separately for each group selected in **TELEGRAM TRANSFER**.
+Split entry can use one configuration for all groups selected in **TELEGRAM TRANSFER**, or separate settings for each group.
 
 For an admissible and sufficiently wide MARKET zone, NovaBOT can create:
 
@@ -326,12 +365,14 @@ The available volume is split between the two branches. If the lot for each TP c
 
 **Allow LIMIT orders after TP1** determines what happens to sibling LIMIT orders:
 
-- option disabled: LIMIT orders that have not triggered are canceled after MT5 confirms MARKET TP1;
+- option disabled: LIMIT orders that have not triggered are canceled after MetaTrader confirms MARKET TP1;
 - option enabled: LIMIT orders remain active.
+
+**Move entry 1 TPs to its entry price** acts only when the second entry actually triggers: TPs on first-entry positions are moved to their entry price. The platform must confirm the trigger; merely placing the pending order is not enough.
 
 ## 8. Configuring Smart Commands
 
-Click **TELEGRAM AUTOMATION** in the MT5 module.
+Click **TELEGRAM AUTOMATION** in the MetaTrader module.
 
 The available families include:
 
@@ -348,7 +389,7 @@ Each family can be enabled, disabled, or used in simulation according to the ava
 For a command received from Telegram:
 
 1. it must be sent as a reply to the parent signal;
-2. the parent must be correlated with an MT5 batch;
+2. the parent must be correlated with a batch on the active platform;
 3. the symbol and batch must be identifiable without ambiguity;
 4. Modify SL/TP commands must contain a usable new numeric value.
 
@@ -356,20 +397,27 @@ A half close is not executed if the remaining volume or volume to close is incom
 
 ## 9. Configuring the Copy Trader
 
-The Copy Trader uses an MT5 source and an MT5 or MT4 target.
+The Copy Trader enforces this route matrix:
+
+| Source | Target | Allowed |
+|---|---|---|
+| MT5 | MT5 | Yes |
+| MT5 | MT4 | Yes |
+| Primary-module MT4 account | MT5 | Yes |
+| MT4 | MT4 | No |
 
 ### 9.1 Choosing the source
 
-Two modes are available:
+Available modes depend on the source platform:
 
 - enter an MT5 source account directly in the Copy Trader;
-- select **USE THE MT5 MODULE ACCOUNT**.
+- select **USE METATRADER MODULE ACCOUNT**.
 
-The second mode is recommended when the source is the same account already connected in the MT5 module. It shares the existing session and avoids two competing initializations of the same terminal.
+With MT5, the second mode shares the historical connected session. With MT4, it automatically loads the live identity and session from the primary module and only allows an MT5 target. The checkbox state is applied when the Copy Trader opens; clearing and rechecking it is not required.
 
 ### 9.2 Choosing the target
 
-1. Select the target platform: **MT5** or **MT4**.
+1. Select a target allowed by the route matrix: **MT5** or **MT4**.
 2. Enter the login, password, and server.
 3. Select the detected terminal.
 4. Click **CONNECT**.
@@ -435,17 +483,16 @@ Use **STOP COPYING** before changing accounts, paths, or the target platform. Th
 
 ## 10. Installing the MT4 Bridge
 
-The MT4 target uses the `NovaBot_MT4_Slave_ZMQ.mq4` EA and mql-zmq components.
+The MetaTrader 4 module and an MT4 Copy Trader target use the `NovaBot_MT4_Slave_ZMQ.mq4` EA, mql-zmq components, and ZeroMQ DLLs.
 
 ### Installation from NovaBOT
 
-1. Open the **Copy Trader** tab.
-2. Select **MT4** as the target platform.
+1. Select **MT4** in the MetaTrader module, or choose an MT4 target in Copy Trader.
+2. Select the exact installation.
 3. Click **INSTALL MT4 BRIDGE**.
-4. Confirm the installation.
-5. Let the PowerShell script automatically search for MT4 data folders.
-6. If it finds several installations, select the one matching the target terminal.
-7. If no installation is detected, manually enter the requested data folder.
+4. Confirm and do not touch windows or the mouse during automation.
+5. Let NovaBOT locate the data folder, copy components, and open MetaEditor for compilation.
+6. If several installations exist, verify that the selected terminal matches the intended data folder.
 
 The script installs or updates:
 
@@ -454,25 +501,26 @@ The script installs or updates:
 - the required DLLs;
 - the associated third-party license.
 
-### Compilation and activation
+### Compilation, attachment, and activation
 
-1. Open MT4 and then MetaEditor.
-2. Open `NovaBot_MT4_Slave_ZMQ.mq4`.
-3. Compile with **F7**.
-4. Make sure there are no compilation errors.
-5. Attach the EA to a chart.
-6. Enable automated trading and DLL imports.
-7. Keep the chart and EA active.
+NovaBOT attempts to compile the EA automatically in MetaEditor. Make sure `NovaBot_MT4_Slave_ZMQ` appears under **Expert Advisors** and no compilation error is shown. If the EA is not already attached:
 
-The console should successively show bridge preparation, waiting for the EA, and then `[TGT] Connected`.
+1. enter login and password, then click **CONNECT METATRADER**;
+2. open a chart for the relevant account;
+3. double-click the EA;
+4. allow DLL imports and live trading;
+5. enable **AutoTrading**;
+6. confirm and keep the chart active.
 
-The bridge uses local ports 6001 and 6002. NovaBOT can recover the port from an old invisible NovaBOT worker when it can identify it with sufficient confidence. It does not intentionally close a visible instance or an unrelated process.
+The console should show bridge preparation, waiting for the EA, then connection to the expected account. In the primary module, the header must show `MT4 • server • login`.
 
-After the EA in the project folder is updated, run the installation again and recompile the EA in MetaEditor so MT4 uses the new version.
+The first instance normally uses ports 6001/6002. If that pair belongs to another active NovaBOT instance, another free pair is allocated automatically and sent to the EA. NovaBOT does not deliberately close a visible instance’s bridge or an unrelated process.
+
+After the project EA is updated, run installation again so the embedded version used by MT4 is recopied and recompiled.
 
 ## 11. Using NovaBOT Companion
 
-NovaBOT Companion displays the status of a Desktop profile. It does not send Telegram, Smart, or MT5 commands.
+NovaBOT Companion displays the status of a Desktop profile. It does not send Telegram, Smart, or MetaTrader commands.
 
 ### 11.1 Enabling monitoring on Desktop
 
@@ -516,7 +564,7 @@ For multiple Desktop profiles, create a separate Companion pairing for each prof
 
 ## 12. Using the Dashboard
 
-The Dashboard displays statistics per Telegram source based on attributable MT5 events and deals.
+The Dashboard displays statistics per Telegram source from events and operations attributable to the active MetaTrader platform. It remains passive: it analyzes archived evidence and never sends an order.
 
 You can view:
 
@@ -539,12 +587,16 @@ A result that cannot be attributed with sufficient confidence may remain unknown
 Settings include:
 
 - automatically connect to Telegram at startup;
-- automatically connect to MetaTrader 5 at startup;
-- display mode;
-- font size;
+- **Connect to MetaTrader 5 (MT5) on startup**, whose historical label actually reconnects the platform saved in the profile, whether MT5 or MT4;
+- main-window display mode;
+- font size applied to modules and dialogs, except the profile manager;
 - remote monitoring.
 
-Available themes are light, dark, and light blue. NovaBOT adapts its window and tabs to screen and Windows scaling changes.
+Available themes are light, dark, and light blue. Display modes resize the interface according to the available space. Telegram, MetaTrader, Dashboard, and Copy Trader each provide scroll bars when their content does not fit, preventing controls from being compressed.
+
+The global console at the bottom of the main window shows two lines. Earlier messages remain available through its scroll bar; this console does not take priority over the useful height of the active module.
+
+NovaBOT also adapts its window and tabs to screen and Windows scaling changes.
 
 The **ℹ️ About** icon displays the version, build, copyright, GitHub link, and main third-party components.
 
@@ -556,19 +608,20 @@ The main Telegram notifications distinguish:
 - **Signal placed**: accepted pending orders that have not triggered yet;
 - **Signal partially executed**: only some orders succeeded;
 - **Signal not executed**: no order was confirmed;
-- **TP reached and confirmed**: MT5 evidence is available;
+- **Pending order triggered**: the pending order became a position on the active platform;
+- **TP reached and confirmed**: terminal evidence is available;
 - **Break Even applied**: the SL change is confirmed;
-- **LIMIT orders canceled**: deletion is confirmed by MT5;
+- **LIMIT orders canceled**: deletion is confirmed by the active platform;
 - **Trade finished**: no active operation remains in the monitored batch.
 
-The price shown for a MARKET operation is its execution price. The price of a pending order is its placement price.
+The price shown for a MARKET operation is its execution price. The price of a pending order is its placement price. A single signal keeps one common batch for its MARKET and LIMIT branches, including on MT4.
 
 ## 15. Recommended Daily Procedure
 
 ### At startup
 
 1. launch the correct profile;
-2. check Telegram and MT5;
+2. check Telegram and the active MetaTrader platform;
 3. verify the correct account and server;
 4. review reconnection or batch-restoration messages;
 5. check the profile's Money Management;
@@ -606,7 +659,7 @@ Check positions and orders directly in MT5 or MT4. Closing NovaBOT does not auto
 
 ### The signal is transferred but not executed
 
-- check the MT5 connection and algorithmic trading;
+- check the active-platform connection; for MT5, verify algorithmic trading; for MT4, verify the EA, bridge, DLL imports, and AutoTrading;
 - read the displayed reason: parsing, symbol, distance, SL/TP geometry, volume, duplicate, trade limit, validation, or broker retcode;
 - check the settings of the active profile;
 - do not change a tolerance after the signal and use that new value to interpret a decision that was made earlier.
@@ -625,6 +678,19 @@ Check positions and orders directly in MT5 or MT4. Closing NovaBOT does not auto
 - enable automated trading and DLL imports;
 - reinstall the bridge and recompile the EA with F7;
 - wait for `[TGT] Connected` before starting the copy.
+
+### The primary MT4 module remains disconnected
+
+- make sure the selected path is the exact intended terminal;
+- make sure the EA and ZeroMQ components are installed, then attach the EA to a chart;
+- allow DLL imports and live trading, then enable **AutoTrading**;
+- verify that the account observed by the bridge matches the requested login;
+- wait for `MT4 • server • login` in the header: the terminal process alone is not a confirmed connection;
+- if the bridge is incomplete, use **INSTALL MT4 BRIDGE** without touching windows or the mouse during automation.
+
+### TPs are not adjusted to the actual entry
+
+The option is deliberately safeguarded. It acts only while the current price is still unfavorable relative to the actual executed entry: below the entry for a BUY, or above the entry for a SELL. No adjustment is made if the price is equal or already favorable, the tick is unavailable, or the order is a STOP.
 
 ### Companion cannot connect
 
@@ -657,7 +723,7 @@ When analyzing an event or incident, always use:
 
 - the relevant profile;
 - the settings saved when the signal was processed;
-- the corresponding Telegram and MT5 logs;
+- the corresponding Telegram and MetaTrader-platform logs;
 - tickets and retcodes confirmed by the terminal.
 
 Behavior observed in one profile does not mean that other profiles use the same rules.
