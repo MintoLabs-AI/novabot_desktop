@@ -1,303 +1,309 @@
-# 🚀 NovaBot Desktop
+# 🚀 NovaBOT Desktop
 
-🇬🇧 **English version:** [README.md](README.md)
+🇬🇧 **English:** [README.md](README.md)  
+📘 **Guide utilisateur détaillé :** [NOVABOT_USER_GUIDE_2026-08-05_FR.md](NOVABOT_USER_GUIDE_2026-08-05_FR.md)
 
 ---
 
+**NovaBOT** est une application Windows développée en Python qui automatise le traitement des signaux de trading entre **Telegram** et **MetaTrader 5 ou MetaTrader 4**.
 
-**NovaBot** est une application de bureau développée en Python permettant d'automatiser le trading entre **Telegram** et **MetaTrader 5**.
+Elle écoute des groupes et canaux Telegram, filtre et interprète leurs messages, applique les règles du profil actif, exécute les ordres sur la plateforme sélectionnée, suit leur cycle de vie, publie les notifications dans un groupe privé et alimente un Dashboard analytique passif.
 
-Elle détecte les signaux publiés sur Telegram, les filtre, les interprète, les exécute automatiquement sur MetaTrader 5, suit entièrement le cycle de vie des positions, alimente un Dashboard analytique basé exclusivement sur les preuves MT5 et intègre un moteur de Copy Trading MT5/MT4.
+> **Important** — NovaBOT peut envoyer automatiquement des ordres réels. Les premiers essais doivent être effectués sur un compte de démonstration avec des volumes contrôlés.
 
 ---
 
 # ✨ Fonctionnalités
 
-## 📡 Intégration Telegram
+## 🧭 Assistant de configuration
 
-- Connexion via Telethon
-- Sélection de plusieurs groupes ou canaux
-- Filtrage intelligent des messages
-- Détection automatique des signaux
-- Gestion des réponses aux signaux
-- Création automatique d'un bot privé
-- Création automatique d'un groupe Telegram privé
-- Synchronisation des notifications MT5
+Une check-list facultative accompagne la création d’un profil sans remplacer les modules existants.
+
+Elle vérifie automatiquement :
+
+- les identifiants API Telegram ;
+- la connexion Telegram complète ;
+- le bot et le groupe privé NovaBOT ;
+- les groupes Telegram à écouter ;
+- le filtrage Telegram ;
+- la connexion MetaTrader ;
+- le Money Management enregistré ;
+- la préparation de l’écoute Telegram.
+
+La progression est persistée. L’utilisateur peut passer la configuration guidée, la reprendre plus tard et consulter ensuite l’**État du profil**. Le bouton d’état devient rouge, orange ou vert selon l’avancement.
 
 ---
 
-## 📈 Trading MetaTrader 5
+## 📡 Intégration Telegram
 
-- Connexion multi-broker
-- Détection automatique des terminaux MT5
-- Découverte automatique des serveurs
-- Exécution des ordres MARKET
-- Exécution des ordres LIMIT
-- Exécution des ordres STOP
-- Gestion multi-TP
-- Gestion multi-positions
-- Conversion automatique Market → Limit
-- Prévention des doublons
-- Validation optionnelle des conditions de marché
-- Activation assistée du trading algorithmique
-- Reconstruction complète du lifecycle des trades
-- Cache intelligent des symboles
-- Démarrage optimisé
+- connexion avec Telethon ;
+- création assistée du bot et du groupe privé ;
+- confirmation de l’ajout du bot comme administrateur ;
+- sélection de plusieurs groupes et canaux ;
+- transfert manuel ou écoute automatique ;
+- filtrage configurable avec raison de rejet ;
+- détection des messages modifiés et supprimés ;
+- correction d’un signal Telegram déjà traité sans recréer tout son batch ;
+- récupération manuelle d’un ancien signal ;
+- notifications durables avec nouvelles tentatives d’envoi ;
+- corrélation obligatoire entre une commande Smart et son message parent.
+
+---
+
+## 📈 Trading MetaTrader 5 et MetaTrader 4
+
+- choix explicite de la plateforme puis de l’installation ;
+- découverte des terminaux MT5 et MT4 ;
+- catalogue de serveurs regroupé par entité broker ;
+- connexion multi-broker ;
+- résolution des symboles et génération d’alias broker ;
+- exécution des ordres MARKET, LIMIT et STOP ;
+- gestion multi-TP et multi-positions ;
+- conversion automatique MARKET → LIMIT selon les règles du profil ;
+- moteurs d’exécution et lifecycles MT4/MT5 clairement séparés ;
+- batch commun pour les branches MARKET et LIMIT issues d’un même signal ;
+- suivi des positions, pending, modifications et fermetures ;
+- activation assistée du trading algorithmique MT5 ;
+- démarrage optimisé sans recollecte systématique des symboles.
+
+### Parcours MT5
+
+NovaBOT utilise la connexion Python MetaTrader 5, les informations réelles du symbole, les retcodes du terminal et les historiques MT5 pour exécuter et caractériser les opérations.
+
+### Parcours MT4
+
+MT4 utilise l’EA `NovaBot_MT4_Slave_ZMQ`, mql-zmq et les DLL ZeroMQ. La connexion n’est confirmée qu’après réception de `READY` et vérification du login réellement observé. Le compte est lancé avec un fichier INI temporaire propre au profil ; pywinauto reste réservé à l’installation et à la compilation assistées du pont.
 
 ---
 
 ## 💰 Money Management
 
-- Lots fixes
-- Lots par TP
-- Risque en %
-- Capital réel
-- Capital virtuel
-- Coffre de protection
-- Répartition automatique des volumes
-- Gestion avancée des zones d'entrée
-- Tolérance de slippage
-- Contrôle du nombre maximum de positions
+- lot fixe, lot par TP ou risque en pourcentage ;
+- capital réel, capital virtuel et coffre de protection ;
+- répartition et normalisation des volumes selon le broker ;
+- tolérance d’entrée manuelle ou automatique par famille d’actifs ;
+- création automatique d’un ordre LIMIT lorsque l’écart est élevé ;
+- prévention des doublons et limite du nombre de trades ;
+- contrôle facultatif des pending dans cette limite ;
+- exécution sans condition configurable par groupe ;
+- Break Even, sécurisation automatique et clôtures progressives ;
+- décalage des TP pour tous les groupes ou par groupe ;
+- ajustement sécurisé des TP à l’entrée réellement exécutée ;
+- entrée fractionnée commune à tous les groupes ou configurée par groupe ;
+- annulation ou maintien des LIMIT sœurs après TP1 ;
+- déplacement des TP de la première entrée à son prix d’entrée lorsque la seconde entrée est déclenchée ;
+- restauration des valeurs par défaut après confirmation.
+
+La configuration Money Management du profil est la source de vérité pour l’admission et le dimensionnement des opérations.
+
+---
+
+## ⚖️ Validation des signaux
+
+Le validateur travaille sur le symbole broker résolu et les données disponibles de la plateforme active. Il contrôle notamment la géométrie SL/TP, le volume, le risque et les conditions de marché.
+
+Décisions possibles :
+
+- `ALLOW` : exécution au volume prévu ;
+- `REDUCE` : exécution avec une réduction effective ;
+- `BLOCK` : aucun ordre envoyé.
+
+Les seuils de marché, notamment le spread, tiennent compte des principales familles d’actifs : Forex, métaux, indices, cryptomonnaies et énergies.
 
 ---
 
 ## 🤖 Smart Automations
 
-NovaBot reconnaît automatiquement plusieurs commandes envoyées sur Telegram.
+NovaBOT reconnaît des commandes Telegram envoyées en réponse au signal parent :
 
-Parmi elles :
+- Break Even ;
+- Secure ;
+- Close ;
+- Close Half ;
+- Modify Stop Loss ;
+- Modify Take Profit ;
+- Edit.
 
-- Break Even
-- Secure
-- Close
-- Close Half
-- Modify Stop Loss
-- Modify Take Profit
-- Edit
-
-Chaque commande peut être activée ou désactivée indépendamment.
+Chaque famille dispose de son propre dictionnaire et peut être activée, désactivée ou simulée selon les réglages disponibles. Les actions passent par la gateway de la plateforme active et doivent être confirmées par le terminal.
 
 ---
 
+## 📊 Lifecycle et notifications
+
+NovaBOT reconstruit le cycle de vie du batch à partir des preuves de la plateforme active :
+
+- déclenchement d’un ordre pending ;
+- Take Profit et Stop Loss ;
+- Break Even et SL sécurisé ;
+- fermeture manuelle ;
+- Smart Close et Close Half ;
+- clôture progressive ;
+- modification ou suppression d’un pending ;
+- causes mixtes et fin du trade.
+
+Les branches MARKET et LIMIT d’un même signal restent rattachées au même batch. La notification finale n’est produite que lorsque plus aucune opération active ne subsiste.
+
+---
 
 ## 📊 Dashboard analytique
 
-- Analyse automatique des groupes Telegram
-- Calcul exclusivement à partir des exécutions et des deals MT5
-- Taux de réussite confirmé
-- Profit net confirmé
-- Profit Factor
-- Drawdown maximal réalisé
-- TP1 à TP4
-- Break Even
-- Smart Close
-- Séries de gains et de pertes
-- Durée moyenne des trades
-- Note sur 100 et classement par étoiles
-- Réinitialisation indépendante par groupe
+Le Dashboard est un consommateur passif des preuves archivées. Il n’envoie jamais d’ordre.
 
----
+Il présente notamment :
 
-## 📊 Suivi des positions
+- les signaux reçus et exécutés ;
+- le taux de réussite et le résultat net confirmés ;
+- le Profit Factor et le drawdown réalisé ;
+- les TP1 à TP4, Break Even et Smart Close ;
+- la durée moyenne et les séries ;
+- la couverture des preuves ;
+- une note sur 100 et un classement par étoiles ;
+- une réinitialisation statistique indépendante par source.
 
-NovaBot reconstruit automatiquement le cycle de vie complet d'un trade.
-
-Détection de :
-
-- Take Profit
-- Stop Loss
-- Break Even
-- Secure Stop
-- Fermeture manuelle
-- Smart Close
-- Smart Close Half
-- Clôture progressive
-- Causes mixtes
-
-Toutes les notifications sont automatiquement publiées dans Telegram.
+Un résultat insuffisamment attribuable reste inconnu au lieu d’être estimé.
 
 ---
 
 ## 🔄 Copy Trader
 
-NovaBot possède un moteur de Copy Trading intégré.
+Le Copy Trader prend en charge les parcours suivants :
 
-Source :
+| Source | Cible | Prise en charge |
+|---|---|---|
+| MT5 | MT5 | Oui |
+| MT5 | MT4 | Oui |
+| Compte MT4 du module principal | MT5 | Oui |
+| MT4 | MT4 | Non |
 
-- MetaTrader 5
+Fonctionnalités principales :
 
-Destination :
+- utilisation d’un compte source saisi directement ou du compte du module MetaTrader ;
+- copie des positions et des ordres pending ;
+- multiplicateur de lots, ratio d’equity ou lot fixe ;
+- normalisation du volume cible ;
+- copie facultative des SL/TP ;
+- alias de symboles et apprentissage de variantes broker confirmées ;
+- mappings persistants avec vérification de l’existence cible ;
+- sécurité de synchronisation initiale : ignorer, copier après double confirmation ou annuler ;
+- protection anti-doublon conservée au moment de l’ouverture ;
+- suivi des ouvertures, modifications, clôtures et suppressions.
 
-- MetaTrader 5
-- MetaTrader 4
-
-Fonctionnalités :
-
-- Copie des positions
-- Copie des ordres LIMIT
-- Multiplicateur de lots
-- Ratio d'equity
-- Lot fixe
-- Mapping automatique des symboles
+Lorsque plusieurs instances NovaBOT utilisent MT4, une paire de ports libre est attribuée sans fermer le bridge d’une autre instance visible.
 
 ---
 
-## 👤 Gestion des profils
+## 👤 Profils isolés
 
-Chaque profil possède son propre environnement isolé.
+Chaque profil possède ses propres :
 
-Le profil contient notamment :
+- identifiants et sessions Telegram ;
+- plateforme et compte MetaTrader ;
+- sources Telegram sélectionnées ;
+- règles de filtrage et dictionnaires Smart ;
+- paramètres Money Management ;
+- alias, mappings, historiques, logs et bases analytiques ;
+- réglages de supervision.
 
-- paramètres
-- sessions Telegram
-- comptes MT5
-- historiques
-- logs
-- alias de symboles
+NovaBOT permet l’import/export ZIP, le verrouillage des profils utilisés, le lancement par `--profile` et l’exécution simultanée de plusieurs profils.
 
-Plusieurs instances de NovaBot peuvent fonctionner simultanément avec des profils différents.
-
-Fonctionnalités supplémentaires :
-
-- Import / Export de profils
-- Verrouillage des profils en cours d'utilisation
-- Lancement par ligne de commande (--profile)
-
+---
 
 ## 📱 Supervision distante
 
-- Supervision HTTP en lecture seule
-- Compatible NovaBOT Companion
-- Fonctionnement sur réseau local ou VPN privé
-- Authentification Bearer
-- QR Code d'appairage
-- Aucune commande distante
+- transport HTTP en lecture seule ;
+- compatible avec NovaBOT Companion ;
+- réseau local privé ou VPN privé ;
+- authentification Bearer obligatoire en mode réseau privé ;
+- QR code d’appairage ;
+- masquage des données sensibles ;
+- aucune commande distante.
 
 ---
 
 ## 🌍 Interface
 
-- PyQt5
-- Thèmes clair, sombre et bleu clair
-- 10 langues
-- 6 modes d'affichage
-- 3 tailles de caractères
-- Interface adaptative
-- Console unifiée
-- Modules indépendants
+- PyQt5 ;
+- thèmes clair, sombre et bleu clair ;
+- 10 langues ;
+- 6 modes d’affichage ;
+- 3 tailles de caractères ;
+- adaptation commune des modules et dialogues ;
+- barres de défilement indépendantes pour Telegram, MetaTrader, Dashboard et Copy Trader ;
+- console globale limitée à deux lignes visibles, avec historique défilable ;
+- icônes Paramètres et À propos dans les modules.
 
 ---
 
-# 🛠 Technologies
+# 🛠 Technologies principales
 
-- Python
-- PyQt5
-- MetaTrader5
-- Telethon
-- ZeroMQ
-- AsyncIO
+- Python ;
+- PyQt5 ;
+- MetaTrader5 ;
+- MQL4 ;
+- Telethon ;
+- ZeroMQ / mql-zmq ;
+- SQLite ;
+- AsyncIO ;
+- pywinauto, uniquement pour l’installation assistée du pont MT4.
 
 ---
 
-# 📂 Architecture
+# 📂 Architecture fonctionnelle
 
-NovaBot est organisé autour de quatre modules principaux :
-
-```
+```text
 Telegram
-     │
-     ▼
-Filtre intelligent
-     │
-     ▼
+   ↓
+Filtrage et corrélation
+   ↓
 Parser de signaux
-     │
-     ▼
-MetaTrader 5
-     │
-     ▼
-Lifecycle des positions
-     ├────────► Dashboard analytique
-     │
-     ▼
-Notifications Telegram
+   ↓
+Résolution du symbole broker
+   ↓
+Admission + Money Management + Validation
+   ↓
+Moteur MT5 ou moteur MT4
+   ↓
+Terminal MetaTrader
+   ↓
+Lifecycle de la plateforme
+   ├──→ Notifications Telegram durables
+   ├──→ Dashboard analytique
+   └──→ Supervision en lecture seule
 ```
 
-Le moteur de Copy Trading fonctionne indépendamment.
-
----
-
-# ⚙️ Principales capacités
-
-- Parsing intelligent des signaux
-- Alias automatiques des symboles
-- Multi-TP
-- Multi-profils
-- Multi-broker
-- Copy Trading
-- Smart Automations
-- Break Even automatique
-- Secure automatique
-- Clôture progressive
-- Lifecycle complet des trades
-- Validation de marché
-- Synchronisation Telegram ↔ MT5
-- Dashboard analytique
-- Notation automatique des groupes
-- Multi-instances
+Les règles communes restent séparées des transports spécifiques. MT5 utilise sa connexion native Python ; MT4 communique avec l’EA au moyen du bridge ZeroMQ.
 
 ---
 
 # 📌 État du projet
 
-NovaBot est un projet personnel développé en Python visant à automatiser entièrement le trading entre Telegram et MetaTrader 5.
+NovaBOT est activement développé avec une priorité donnée à la stabilité, aux performances, à la traçabilité des preuves terminales et à la cohérence entre MT4 et MT5.
 
-Il intègre un moteur de parsing avancé, un suivi complet du cycle de vie des trades, un Dashboard analytique reposant exclusivement sur les preuves MT5 et un moteur de Copy Trading MT5/MT4.
-
-Le projet est activement développé avec un accent mis désormais sur la stabilité, les performances, la fiabilité et la qualité des analyses plutôt que sur l'ajout de nouvelles fonctionnalités.
+Le comportement réel dépend toujours du profil actif, de ses paramètres enregistrés, de la plateforme sélectionnée et des informations retournées par le broker.
 
 ---
 
-## Prérequis facultatif — Activation automatique du trading algorithmique
+## 🤝 Composants tiers
 
-Le Microsoft Visual C++ Redistributable peut être nécessaire pour utiliser la fonctionnalité d'activation automatique du trading algorithmique de NovaBOT.
+NovaBOT utilise notamment :
 
-Téléchargements officiels Microsoft :
-
-- [Visual C++ Redistributable (x64)](https://aka.ms/vc14/vc_redist.x64.exe)
-- [Visual C++ Redistributable (x86)](https://aka.ms/vc14/vc_redist.x86.exe)
-
-Ces composants ne sont pas nécessaires au fonctionnement de NovaBOT lui-même et doivent être téléchargés directement depuis Microsoft.
-
----
-
-### 🤝 Composants tiers
-
-NovaBOT utilise plusieurs composants open source :
-
-- mql-zmq (Apache License 2.0)
-- ZeroMQ
-- Telethon
-- PyQt5
+- mql-zmq — Apache License 2.0 ;
+- ZeroMQ ;
+- Telethon ;
+- PyQt5.
 
 ---
 
 # 📄 Licence
 
-Licence non définie pour le moment.
-
-En attendant la publication d'une licence officielle, tous les droits sont réservés.
+Aucune licence de redistribution n’est définie pour le moment. Jusqu’à la publication d’une licence officielle, **tous les droits sont réservés**.
 
 ---
 
-⚠️ Avertissement
+# ⚠️ Avertissement
 
-Ce projet est mis à disposition publiquement afin de permettre sa consultation, son étude et son amélioration.
+NovaBOT est fourni **en l’état**, sans garantie de fonctionnement, de fiabilité ou d’adéquation à un usage particulier.
 
-NovaBOT est fourni en l'état, sans aucune garantie de fonctionnement, de fiabilité ou d'adéquation à un usage particulier.
+Son utilisation relève entièrement de la responsabilité de l’utilisateur. L’auteur ne pourra être tenu responsable d’une perte financière, perte de données, interruption d’activité ou autre conséquence directe ou indirecte.
 
-L'utilisation de ce logiciel est entièrement sous la responsabilité de son utilisateur. L'auteur ne pourra être tenu responsable de toute perte financière, perte de données, dommage matériel, interruption d'activité ou de toute conséquence directe ou indirecte résultant de l'utilisation de NovaBOT.
-
-Le trading comporte des risques importants. NovaBOT est un outil logiciel et ne constitue en aucun cas un conseil en investissement. Toutes les décisions de trading relèvent exclusivement de l'utilisateur.
-
-Aucune assistance, garantie ou responsabilité n'est fournie par l'auteur.
+Le trading comporte des risques importants. NovaBOT est un outil logiciel et ne constitue ni un conseil financier ni un conseil en investissement. Toutes les décisions de trading relèvent exclusivement de l’utilisateur.
